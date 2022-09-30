@@ -1,0 +1,146 @@
+﻿@model TrackerWeb.Models.AvisoViewModel
+@{
+    ViewData["Title"] = "Avisos";
+}
+
+<h1>Avisos</h1>
+
+<div class="col-mb-3">
+    <div class="form-check form-switch col-sm-4 float-start">
+        <input class="form-check-input" type="checkbox" id="flexSwitchSoloAsignados">
+        <label class="form-check-label" for="flexSwitchCheckDefault">Ver solo avisos sin asignar</label>
+    </div>
+    <div class="col-sm-4 float-end">
+        <button type="button" class="btn btn-light float-end" data-bs-toggle="modal" data-bs-target="#newAvisoModal">Nuevo Aviso</button>
+    </div>
+</div>
+
+<div id="gridTest"></div>
+
+<div class="modal fade" id="newAvisoModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Nuevo Aviso</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3 row">
+                    <label class="col-sm-2">Cliente:</label>
+                    <select id="selectCliente" class="selectized col-sm-10"></select>
+                </div>
+                <div class="mb-1 row">
+                    <label class="col-sm-2">Fuente:</label>
+                    <select id="selectFuente" class="selectized col-sm-4"></select>
+                    <label class="col-sm-2">Estado:</label>
+                    <select id="selectEstado" class="selectized col-sm-4"></select>
+                </div>
+                <div class="mb-1 row">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+
+    var model = JSON.parse('@Html.Raw(Json.Serialize(@Model))');
+
+    //var myJSONString = '@Html.Raw(Json.Serialize(@Model))';
+    //var model = JSON.parse(myJSONString.escapeSpecialChars());
+
+
+    $("#selectCliente").selectize({
+        sortField: "text",
+        options: model.clientes,
+        labelField: 'nombre',
+        valueField: 'idcliente',
+        searchField: 'nombre',
+        render: {
+            option: function (data, escape) {
+                return '<div class="option">' +
+                    '<span class="title">' + escape(data.nombre) + '</span>' +
+                    '</div>';
+            }
+        }
+    });
+
+    $("#selectFuente").selectize({
+        sortField: "text",
+        options: model.clientes,
+        labelField: 'nombre',
+        valueField: 'idcliente',
+        searchField: 'nombre',
+        render: {
+            option: function (data, escape) {
+                return '<div class="option">' +
+                    '<span class="title">' + escape(data.nombre) + '</span>' +
+                    '</div>';
+            }
+        }
+    });
+
+    $("#selectEstado").selectize({
+        sortField: "text",
+        options: model.clientes,
+        labelField: 'nombre',
+        valueField: 'idcliente',
+        searchField: 'nombre',
+        render: {
+            option: function (data, escape) {
+                return '<div class="option">' +
+                    '<span class="title">' + escape(data.nombre) + '</span>' +
+                    '</div>';
+            }
+        }
+    });
+
+    
+    var gridOptions = {
+        //columns: ["IDCASO", "NUMCASO", "CLIENTE","DESCRIPCION"],
+        columns: [{
+            name: "Idcaso"
+        }, {
+            name: "Numcaso"
+        }, {
+            name: "usuario_modificacion"
+        }, {
+            name: "Cliente"
+        }, {
+            name: "Descripcion",
+            width: '100%'
+        }],
+        data: model.avisos,
+        sort: true,
+        search: true,
+        pagination: {
+            enabled: true,
+            limit: 10,
+            summary: false
+        }
+    };
+
+    const grid = new gridjs.Grid(gridOptions).render(document.getElementById("gridTest"));
+
+    $("#flexSwitchSoloAsignados").change(() => {
+        refreshGrid();
+    });
+
+    function refreshGrid(){
+        var datos = model.avisos;
+        if ($("#flexSwitchSoloAsignados").prop("checked")) {
+            datos = model.avisos.filter((x) => x.usuario_modificacion === "PALOMA");
+        }
+
+        gridOptions.data = datos;
+
+        grid.updateConfig(gridOptions).forceRender();
+    }
+
+
+</script>
