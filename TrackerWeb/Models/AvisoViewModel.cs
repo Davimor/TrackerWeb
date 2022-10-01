@@ -8,6 +8,10 @@ namespace TrackerWeb.Models
     {
         public List<DTO.Aviso> Avisos { get; set; }
         public List<DTO.Cliente> Clientes { get; set; }
+        public List<DTO.KeyValue> Fuentes { get; set; }
+        public List<DTO.KeyValue> Estados { get; set; }
+        public List<DTO.KeyValue> Tipos { get; set; }
+        public List<DTO.KeyValue> Origenes { get; set; }
 
         public AvisoViewModel(IConfiguration _Configuration)
         {
@@ -36,7 +40,7 @@ JOIN TIPOS t ON t.IDTIPO = a.TIPO
 JOIN ORIGEN o ON o.IDORIGEN = a.ORIGEN
 JOIN FUENTES f ON f.IdFuente = a.FUENTE
 LEFT JOIN AsignacionCasos ac ON ac.IdCaso = a.IDCASO
-LEFT JOIN Empleados emp ON emp.EmployeeID = ac.EmployeeID", null).ToList();
+LEFT JOIN Empleados emp ON emp.EmployeeID = ac.EmployeeID").ToList();
 
                 Clientes = db.GetSimpleData<DTO.Cliente>(@"SELECT TOP 10 [IDCLIENTE]
       ,[NOMBRE]
@@ -57,6 +61,10 @@ LEFT JOIN Empleados emp ON emp.EmployeeID = ac.EmployeeID", null).ToList();
       ,[CODFACTUSOL]
       ,[TIPO] FROM CLIENTES");
 
+                Fuentes = db.GetSimpleData<KeyValue>("SELECT idFuente 'clave', DESCRIPCION 'valor' FROM FUENTES");
+                Estados = db.GetSimpleData<KeyValue>("SELECT idEstado 'clave', DESCRIPCION 'valor' FROM ESTADOS");
+                Tipos = db.GetSimpleData<KeyValue>("SELECT idTipo 'clave', DESCRIPCION 'valor' FROM TIPOS");
+                Origenes = db.GetSimpleData<KeyValue>("SELECT idOrigen 'clave', DESCRIPCION 'valor' FROM ORIGEN");
             }
         }
 

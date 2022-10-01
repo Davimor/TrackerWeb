@@ -29,32 +29,70 @@
                 <h5 class="modal-title" id="exampleModalLabel">Nuevo Aviso</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body align-items-center">
                 <div class="mb-3 row">
-                    <label class="col-sm-2">Cliente:</label>
-                    <select id="selectCliente" class="selectized col-sm-10"></select>
+                    <label class="col-sm-1">Cliente:</label>
+                    <select id="selectCliente" class="selectized col-sm-11"></select>
                 </div>
-                <div class="mb-1 row">
-                    <label class="col-sm-2">Fuente:</label>
-                    <select id="selectFuente" class="selectized col-sm-4"></select>
-                    <label class="col-sm-2">Estado:</label>
-                    <select id="selectEstado" class="selectized col-sm-4"></select>
+                <div class="mb-3 row">
+                    <label class="col-sm-1">Fuente:</label>
+                    <select id="selectFuente" class="selectized col-sm-3"></select>
+                    <label class="col-sm-1">Estado:</label>
+                    <select id="selectEstado" class="selectized col-sm-3"></select>
+                    <label class="col-sm-1">Tipo:</label>
+                    <select id="selectTipo" class="selectized col-sm-3"></select>
                 </div>
-                <div class="mb-1 row">
+                <div class="mb-3 row">
+                    <label class="col-sm-1">Origen:</label>
+                    <select id="selectOrigen" class="selectized col-sm-3"></select>
+                    <label class="col-sm-1">Fecha</label>
+                    <div class="col-sm-4">
+                        <div id="fechaAviso"></div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="col-sm-2">Prioridad:</label>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="prioridad" id="prioridadRadio1" value="baja">
+                        <label class="form-check-label" for="inlineRadio1">Baja</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="prioridad" id="prioridadRadio2" value="media">
+                        <label class="form-check-label" for="inlineRadio2">Media</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="prioridad" id="prioridadRadio3" value="alta">
+                        <label class="form-check-label" for="inlineRadio3">Alta</label>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="textDescripcion" class="form-label">Descripción:</label>
+                    <textarea class="form-control" id="textDescripcion" rows="3"></textarea>
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary">Guardar</button>
+                <button type="button" id="btnSaveNewAviso" class="btn btn-primary">Guardar</button>
             </div>
         </div>
     </div>
 </div>
 
 
+
 <script>
+    const now = new Date();
     var model = JSON.parse(('@Html.Raw(Json.Serialize(@Model))').escapeSpecialChars());
     var datosGrid = model.avisos;
+    var isAdmin = getCookie("trackerAdmin");
+    var isAsign = getCookie("trackerAsign");
+    
+    var cliente = "";
+    var fuente = "";
+    var estado = "";
+    var tipo = "";
+    var origen = "";
+
 
     //var model = JSON.parse(myJSONString.escapeSpecialChars());
 
@@ -70,37 +108,84 @@
                     '<span class="title">' + escape(data.nombre) + '</span>' +
                     '</div>';
             }
+        }, onChange: function (value) {
+            cliente = value;
         }
     });
 
     $("#selectFuente").selectize({
         sortField: "text",
-        options: model.clientes,
-        labelField: 'nombre',
-        valueField: 'idcliente',
-        searchField: 'nombre',
+        options: model.fuentes,
+        labelField: 'valor',
+        valueField: 'clave',
+        searchField: 'valor',
         render: {
             option: function (data, escape) {
                 return '<div class="option">' +
-                    '<span class="title">' + escape(data.nombre) + '</span>' +
+                    '<span class="title">' + escape(data.valor) + '</span>' +
                     '</div>';
             }
+        }, onChange: function (value) {
+            fuente = value;
         }
     });
 
     $("#selectEstado").selectize({
         sortField: "text",
-        options: model.clientes,
-        labelField: 'nombre',
-        valueField: 'idcliente',
-        searchField: 'nombre',
+        options: model.estados,
+        labelField: 'valor',
+        valueField: 'clave',
+        searchField: 'valor',
         render: {
             option: function (data, escape) {
                 return '<div class="option">' +
-                    '<span class="title">' + escape(data.nombre) + '</span>' +
+                    '<span class="title">' + escape(data.valor) + '</span>' +
                     '</div>';
             }
+        }, onChange: function (value) {
+            estado = value;
         }
+    });
+
+    $("#selectTipo").selectize({
+        sortField: "text",
+        options: model.tipos,
+        labelField: 'valor',
+        valueField: 'clave',
+        searchField: 'valor',
+        render: {
+            option: function (data, escape) {
+                return '<div class="option">' +
+                    '<span class="title">' + escape(data.valor) + '</span>' +
+                    '</div>';
+            }
+        }, onChange: function (value) {
+            tipo = value;
+        }
+    });
+
+    $("#selectOrigen").selectize({
+        sortField: "text",
+        options: model.origenes,
+        labelField: 'valor',
+        valueField: 'clave',
+        searchField: 'valor',
+        render: {
+            option: function (data, escape) {
+                return '<div class="option">' +
+                    '<span class="title">' + escape(data.valor) + '</span>' +
+                    '</div>';
+            }
+        }, onChange: function (value) {
+            origen = value;
+        }
+    });
+
+    var dateTimeBox = $("#fechaAviso").dxDateBox({
+        "opened": false,
+        type: 'datetime',
+        value: now,
+        displayFormat: 'dd/MM/yyyy HH:mm:ss',
     });
 
     var grid = $("#gridTest").dxDataGrid({
@@ -123,13 +208,13 @@
             showPageSizeSelector: true,
             showInfo: true,
             showNavigationButtons: true,
-        }, 
+        },
         selection: {
             mode: 'multiple'
         },
         export: {
             enabled: true
-        }, 
+        },
         onExporting: function (e) {
             const workbook = new ExcelJS.Workbook();
             const worksheet = workbook.addWorksheet('Main sheet');
@@ -167,9 +252,29 @@
         grid.dxDataGrid("getDataSource").reload();
     });
 
-    var isAdmin = getCookie("trackerAdmin");
-    var isAsign = getCookie("trackerAsign");
+    $("#btnSaveNewAviso").click(() => {
 
+        var date = dateTimeBox.dxDateBox("instance").option('value');
+        var prioridad = $("input[name=prioridad]:checked").val();
+        var descripcion = $("#textDescripcion").val();
+
+        
+
+        alert("Cliente: " + cliente + "\nFuente: " + fuente + "\nEstado: " + estado + "\ntipo: " + tipo + "\norigen: " + origen + "\nFecha: " + date + "\nPrioridad: " + prioridad + "\nDescripcion: " + descripcion);
+
+        //Hacer insert en BBDD y modelo
+
+
+        //Recargar grid
+        grid.dxDataGrid("getDataSource").reload();
+
+        //Desues de guardar en BBDD
+        cliente = "";
+        fuente = "";
+        estado = "";
+        tipo = "";
+        origen = "";
+    });
 
 
     function getCookie(cname) {
