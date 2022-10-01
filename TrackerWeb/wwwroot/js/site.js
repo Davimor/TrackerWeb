@@ -13,3 +13,4 @@ String.prototype.escapeSpecialChars = function () {
         .replace(/\\b/g, "\\b")
         .replace(/\\f/g, "\\f");
 };
+

@@ -103,13 +103,13 @@ namespace TrackerWeb.Controllers
                         }
                         TempData["ErrorMSG"] = null;
                         HttpContext.Response.Cookies.Append("loginTracker", user.Nombre + " " + user.Apellidos, cookieOptions);
-                        if (entity.Administrador)
+                        if (user.Administrador)
                         {
-                            HttpContext.Response.Cookies.Append("trackerAdmin", entity.Administrador.ToString(), cookieOptions);
+                            HttpContext.Response.Cookies.Append("trackerAdmin", user.Administrador.ToString(), cookieOptions);
                         }
-                        if (entity.AsignaCasos)
+                        if (user.AsignaCasos)
                         {
-                            HttpContext.Response.Cookies.Append("trackerAsign", entity.AsignaCasos.ToString(), cookieOptions);
+                            HttpContext.Response.Cookies.Append("trackerAsign", user.AsignaCasos.ToString(), cookieOptions);
                         }
                         return RedirectToAction("Index");
                     }
