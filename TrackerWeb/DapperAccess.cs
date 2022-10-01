@@ -28,5 +28,11 @@ namespace TrackerWeb
         {
             return conn.Query<T>(query, parm, commandTimeout: timeout).ToList();
         }
+
+        internal string GetJSON(string query, object? parm = null, int timeout = 30)
+        {
+            return conn.Query<string>(query + " FOR JSON AUTO", parm, commandTimeout: timeout).First();
+        }
+
     }
 }

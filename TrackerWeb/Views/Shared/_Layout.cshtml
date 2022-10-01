@@ -9,15 +9,25 @@
     <link rel="stylesheet" href="~/lib/gridjs/mermaid.min.css"/>
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/TrackerWeb.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="/css/dx.common.css">
+    <link rel="stylesheet" href="/css/dx.material.blue.light.compact.css">
+   @* <link rel="stylesheet" href="/css/dx.light.compact.css">*@
 
     <script src="/js/site.js" type="text/javascript"></script>
     <script src="/lib/jquery/dist/jquery.min.js" type="text/javascript"></script>
-    <script src="/lib/gridjs/gridjs.umd.js" type="text/javascript"></script>
+
+    @*<script src="/lib/gridjs/gridjs.umd.js" type="text/javascript"></script>*@
+
     <script src="/js/selectize.js" type="text/javascript"></script>
+    <script src="/js/dx.all.js" type="text/javascript"></script>
+    <script src="/js/exceljs.min.js" type="text/javascript"></script>
+    <script src="/js/FileSaver.min.js" type="text/javascript"></script>
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+    @if (Context.Request.Cookies.ContainsKey("loginTracker"))
+    {
+        <header>
+            <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
                 <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index"><img src="~/img/logo.png" width="30" height="30" class="d-inline-block align-top" alt="" /></a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
@@ -37,9 +47,23 @@
                         </li>
                     </ul>
                 </div>
+                <div class="float-end">@Html.Raw(Context.Request.Cookies["loginTracker"].ToString()) - <a class="" asp-area="" asp-controller="Home" asp-action="Logout">Cerrar Sesion</a></div>
             </div>
         </nav>
     </header>
+    }else{
+        <header>
+            <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+                <div class="container-fluid">
+                    <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index"><img src="~/img/logo.png" width="30" height="30" class="d-inline-block align-top" alt="" /></a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>                   
+                </div>
+            </nav>
+        </header>
+    }
     <div class="container">
         <main role="main" class="pb-3">
             @RenderBody()

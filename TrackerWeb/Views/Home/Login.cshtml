@@ -1,0 +1,66 @@
+﻿@model TrackerWeb.LoginVM
+@{
+    ViewData["Title"] = "Login";
+
+    if (TempData["ErrorMSG"] != null)
+    {
+        @Html.Raw(@"<div class='alert alert-danger' role='alert'>" +
+                @TempData["ErrorMSG"].ToString()+
+            "</div>")
+        ;
+    }
+}
+
+<script>
+    window.setTimeout(function () {
+        $(".alert-danger").fadeTo(500, 0).slideUp(500, function () {
+            $(this).remove();
+        });
+    }, 3000);
+</script>
+
+<div class="text-center">
+    <div class="container-sm" style="max-width:500px">
+        <div class="col-mb-12">
+            @using (Html.BeginForm("Login", "Home", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+                <img src="~/img/logo.png" alt="" style="max-width:100px" />
+                <h1 class="display-4">Hydroflomen</h1>
+                <!-- Email input -->
+                <div class="form-outline mb-4">
+                    @*<input type="email" id="form2Example1" class="form-control" />*@
+                    @Html.TextBoxFor(s => s.Nombre, new { @placeholder = "Usuario", @class = "form-control" })
+                    <label class="form-label" for="form2Example1">usuario</label>
+                </div>
+
+                <!-- Password input -->
+                <div class="form-outline mb-4">
+                    @*<input type="password" id="form2Example2" class="form-control" />*@
+                    @Html.PasswordFor(s => s.pass, new { @placeholder = "Contraseña", @class = "form-control" })
+                    <label class="form-label" for="form2Example2">Contraseña</label>
+                </div>
+
+                <!-- 2 column grid layout for inline styling -->
+                <div class="row mb-4">
+                    <div class="col d-flex justify-content-center">
+                        <!-- Checkbox -->
+                        <div class="form-check">
+                            @*<input class="form-check-input" type="checkbox" value="" id="form2Example31" checked />*@
+                            @Html.CheckBoxFor(s => s.isRemember, new { @class = "form-check-input" })
+                            <label class="form-check-label" for="form2Example31"> Remember me </label>
+                        </div>
+                    </div>
+
+                    <div class="col">
+                        <!-- Simple link -->
+                        <a href="#!">Forgot password?</a>
+                    </div>
+                </div>
+
+                <!-- Submit button -->
+                <button type="submit" class="btn btn-primary btn-block mb-4">Acceder</button>
+            }
+        </div>
+    </div>
+</div>
