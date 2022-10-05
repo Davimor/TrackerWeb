@@ -18,7 +18,7 @@ namespace TrackerWeb.Models
 
             using (DapperAccess db = new DapperAccess(_Configuration))
             {
-                Avisos = db.GetSimpleData<DTO.Aviso>(@"SELECT TOP 50
+                Avisos = db.GetSimpleData<DTO.Aviso>(@"SELECT TOP 500
 a.IDCASO,
 a.FECHA,
 a.CLIENTE 'IDCLIENTE',
@@ -42,7 +42,7 @@ JOIN FUENTES f ON f.IdFuente = a.FUENTE
 LEFT JOIN AsignacionCasos ac ON ac.IdCaso = a.IDCASO
 LEFT JOIN Empleados emp ON emp.EmployeeID = ac.EmployeeID").ToList();
 
-                Clientes = db.GetSimpleData<DTO.Cliente>(@"SELECT TOP 10 [IDCLIENTE]
+                Clientes = db.GetSimpleData<DTO.Cliente>(@"SELECT TOP 100 [IDCLIENTE]
       ,[NOMBRE]
       ,[APELLIDOS]
       ,[DIRECCION]

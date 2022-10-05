@@ -1,8 +1,15 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics;
-using System.Security.Principal;
+﻿using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Authorization;
 using TrackerWeb.Models;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authentication;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.Build.Framework;
+using Microsoft.AspNetCore.Identity;
 
 namespace TrackerWeb.Controllers
 {
@@ -22,12 +29,15 @@ namespace TrackerWeb.Controllers
 
         public IActionResult Index()
         {
-            if (HttpContext.Request.Cookies.ContainsKey("loginTracker"))
+            //if (HttpContext.Request.Cookies.ContainsKey("loginTracker"))
+            if (User.Identity.IsAuthenticated)
             {
+                
                 return View();
             }
             else
             {
+                string a = User.Identity.Name;
                 return View("Login");
             }
         }
@@ -46,14 +56,7 @@ namespace TrackerWeb.Controllers
         [HttpGet]
         public ActionResult Login()
         {
-            if (HttpContext.Request.Cookies.ContainsKey("loginTracker"))
-            {
-                return View("Index");
-            }
-            else
-            {
                 return View();
-            }
         }
 
 
@@ -64,7 +67,7 @@ namespace TrackerWeb.Controllers
         {
             try
             {
-                HttpContext.Response.Cookies.Delete("loginTracker");
+                HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
                 return RedirectToAction("Login");
             }
             catch
@@ -93,24 +96,33 @@ namespace TrackerWeb.Controllers
                         //login OK crear cookie y todo eso
                         CookieOptions cookieOptions = new CookieOptions();
                         cookieOptions.Secure = true;
-                        if (entity.isRemember)
-                        {
-                            cookieOptions.Expires = DateTime.Today.AddDays(15).AddHours(23).AddMinutes(59);
-                        }
-                        else
-                        {
-                            cookieOptions.Expires = DateTime.Today.AddHours(23).AddMinutes(59);
-                        }
                         TempData["ErrorMSG"] = null;
-                        HttpContext.Response.Cookies.Append("loginTracker", user.Nombre + " " + user.Apellidos, cookieOptions);
+
+                        var claims = new List<Claim> { new Claim(ClaimTypes.Name, user.Nombre + " " + user.Apellidos) };
+
+                        var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
                         if (user.Administrador)
                         {
-                            HttpContext.Response.Cookies.Append("trackerAdmin", user.Administrador.ToString(), cookieOptions);
+                            claims.Add(new Claim(ClaimTypes.Role, "Administrator"));
                         }
                         if (user.AsignaCasos)
                         {
-                            HttpContext.Response.Cookies.Append("trackerAsign", user.AsignaCasos.ToString(), cookieOptions);
+                            claims.Add(new Claim(ClaimTypes.Role, "Casos"));
                         }
+                        var authProperties = new AuthenticationProperties
+                        {
+                            ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(30)
+                        };
+
+                        if (entity.isRemember)
+                            authProperties.ExpiresUtc = DateTimeOffset.UtcNow.AddHours(23);
+
+                        HttpContext.SignInAsync(
+        CookieAuthenticationDefaults.AuthenticationScheme,
+        new ClaimsPrincipal(claimsIdentity),
+        authProperties);
+
+                        _logger.LogInformation($"User {user.IdUser} logged in at {DateTime.Now}");
                         return RedirectToAction("Index");
                     }
                     else
