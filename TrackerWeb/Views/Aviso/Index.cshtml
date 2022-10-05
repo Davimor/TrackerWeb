@@ -5,6 +5,10 @@
 
 <h1>Avisos</h1>
 
+<div class="alert alert-success" id="success-addAviso" style="display:none">
+    !Aviso creado correctamente!
+</div>
+
 <div class="col-mb-3">
     <div class="form-check form-switch col-sm-4 float-start">
         <input class="form-check-input" type="checkbox" id="flexSwitchSoloAsignados">
@@ -39,6 +43,7 @@
         </div>
     </div>
 </div>
+
 
 
 
@@ -249,7 +254,10 @@
                     datosGrid = model.avisos;
                     grid.dxDataGrid("getDataSource").reload();
                     $('#newAvisoModal').modal('toggle');
-
+                    $('#success-addAviso').show();
+                    $("#success-addAviso").fadeTo(2000, 500).slideUp(500, function () {
+                        $("#success-addAviso").slideUp(500);
+                    });
                 } else {
                     alert("Something went wrong");
                 }

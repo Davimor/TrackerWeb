@@ -19,7 +19,7 @@ namespace TrackerWeb
             conn.Dispose();
         }
 
-        internal object Execute(string query, object? parm = null,int timeout = 30)
+        internal int Execute(string query, object? parm = null,int timeout = 30)
         {
             return conn.Execute(query, parm, commandTimeout: timeout);
         }
