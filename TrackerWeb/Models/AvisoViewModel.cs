@@ -40,7 +40,8 @@ JOIN TIPOS t ON t.IDTIPO = a.TIPO
 JOIN ORIGEN o ON o.IDORIGEN = a.ORIGEN
 JOIN FUENTES f ON f.IdFuente = a.FUENTE
 LEFT JOIN AsignacionCasos ac ON ac.IdCaso = a.IDCASO
-LEFT JOIN Empleados emp ON emp.EmployeeID = ac.EmployeeID").ToList();
+LEFT JOIN Empleados emp ON emp.EmployeeID = ac.EmployeeID
+ORDER BY FECHA DESC").ToList();
 
                 Clientes = db.GetSimpleData<DTO.Cliente>(@"SELECT TOP 100 [IDCLIENTE]
       ,[NOMBRE]
@@ -67,6 +68,5 @@ LEFT JOIN Empleados emp ON emp.EmployeeID = ac.EmployeeID").ToList();
                 Origenes = db.GetSimpleData<KeyValue>("SELECT idOrigen 'clave', DESCRIPCION 'valor' FROM ORIGEN");
             }
         }
-
     }
 }

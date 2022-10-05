@@ -16,5 +16,6 @@
         public bool ASIGNADO { get; set; }
         public string EmployeeID { get; set; } = "";
         public string EMPLEADO { get; set; } = "";
+        public string usuario_modificacion { get; set; } = "";
     }
 }

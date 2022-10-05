@@ -99,15 +99,15 @@ namespace TrackerWeb.Controllers
                         TempData["ErrorMSG"] = null;
 
                         var claims = new List<Claim> { new Claim(ClaimTypes.Name, user.Nombre + " " + user.Apellidos) };
+                        claims.Add(new Claim(ClaimTypes.Sid, user.IdUser));
 
-                        var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
                         if (user.Administrador)
                         {
                             claims.Add(new Claim(ClaimTypes.Role, "Administrator"));
                         }
                         if (user.AsignaCasos)
                         {
-                            claims.Add(new Claim(ClaimTypes.Role, "Casos"));
+                            claims.Add(new Claim(ClaimTypes.Actor, "Casos"));
                         }
                         var authProperties = new AuthenticationProperties
                         {
@@ -116,6 +116,8 @@ namespace TrackerWeb.Controllers
 
                         if (entity.isRemember)
                             authProperties.ExpiresUtc = DateTimeOffset.UtcNow.AddHours(23);
+
+                        var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
 
                         HttpContext.SignInAsync(
         CookieAuthenticationDefaults.AuthenticationScheme,

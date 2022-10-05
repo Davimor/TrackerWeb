@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using DTO;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Newtonsoft.Json;
+using System.Security.Claims;
 using TrackerWeb.Models;
 
 namespace TrackerWeb.Controllers
@@ -22,7 +24,7 @@ namespace TrackerWeb.Controllers
         public ActionResult Index()
         {
             var json = JsonConvert.SerializeObject(model);
-            return View("Index",model);
+            return View("Index", model);
         }
 
         // GET: AvisoController/Details/5
@@ -32,25 +34,46 @@ namespace TrackerWeb.Controllers
         }
 
         // GET: AvisoController/Create
-        public ActionResult Create()
+        [HttpPost]
+        public JsonResult Create(Aviso aviso)
         {
-            return View();
+            ClaimsIdentity identity = (ClaimsIdentity)User.Identity;
+            var claim = identity.FindFirst(ClaimTypes.Sid);
+            aviso.usuario_modificacion = claim.Value;
+            
+            using (DapperAccess db = new DapperAccess(Configuration))
+            {
+                db.Execute(@"INSERT INTO [dbo].[CASOS]
+           ([NUMCASO]
+           ,[CLIENTE]
+           ,[ESTADO]
+           ,[TIPO]
+           ,[ORIGEN]
+           ,[FUENTE]
+           ,[Prioridad]
+           ,[FECHA]
+           ,[DESCRIPCION]
+           ,[usuario_consulta]
+           ,[usuario_modificacion]
+           ,[fecha_modificacion])
+     VALUES
+           ([dbo].[CrearTicketCaso]()
+           ,@IDCLIENTE
+           ,@ESTADO
+           ,@TIPO
+           ,@ORIGEN
+           ,@FUENTE
+           ,@Prioridad
+           ,@FECHA
+           ,@DESCRIPCION
+           ,''
+           ,@usuario_modificacion
+           ,GETDATE())", aviso);
+            }
+
+            return Json(new AvisoViewModel(Configuration));
         }
 
-        // POST: AvisoController/Create
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
-        {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
-        }
 
         // GET: AvisoController/Edit/5
         public ActionResult Edit(int id)

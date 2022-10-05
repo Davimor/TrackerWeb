@@ -30,45 +30,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body align-items-center">
-                <div class="mb-3 row">
-                    <label class="col-sm-1">Cliente:</label>
-                    <select id="selectCliente" class="selectized col-sm-11"></select>
-                </div>
-                <div class="mb-3 row">
-                    <label class="col-sm-1">Fuente:</label>
-                    <select id="selectFuente" class="selectized col-sm-3"></select>
-                    <label class="col-sm-1">Estado:</label>
-                    <select id="selectEstado" class="selectized col-sm-3"></select>
-                    <label class="col-sm-1">Tipo:</label>
-                    <select id="selectTipo" class="selectized col-sm-3"></select>
-                </div>
-                <div class="mb-3 row">
-                    <label class="col-sm-1">Origen:</label>
-                    <select id="selectOrigen" class="selectized col-sm-3"></select>
-                    <label class="col-sm-1">Fecha</label>
-                    <div class="col-sm-4">
-                        <div id="fechaAviso"></div>
-                    </div>
-                </div>
-                <div class="mb-3">
-                    <label class="col-sm-2">Prioridad:</label>
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" name="prioridad" id="prioridadRadio1" value="baja">
-                        <label class="form-check-label" for="inlineRadio1">Baja</label>
-                    </div>
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" name="prioridad" id="prioridadRadio2" value="media">
-                        <label class="form-check-label" for="inlineRadio2">Media</label>
-                    </div>
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" name="prioridad" id="prioridadRadio3" value="alta">
-                        <label class="form-check-label" for="inlineRadio3">Alta</label>
-                    </div>
-                </div>
-                <div class="mb-3">
-                    <label for="textDescripcion" class="form-label">Descripción:</label>
-                    <textarea class="form-control" id="textDescripcion" rows="3"></textarea>
-                </div>
+                @Html.Partial("_AddAviso")
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -260,15 +222,45 @@
         var prioridad = $("input[name=prioridad]:checked").val();
         var descripcion = $("#textDescripcion").val();
 
-        
+        var NuevoAviso = {
+            IDCLIENTE: cliente,
+            FUENTE: fuente,
+            ESTADO: estado,
+            TIPO: tipo,
+            ORIGEN: origen,
+            FECHA: date.toISOString(),
+            PRIORIDAD: prioridad,
+            DESCRIPCION: descripcion
+        }
 
-        alert("Cliente: " + cliente + "\nFuente: " + fuente + "\nEstado: " + estado + "\ntipo: " + tipo + "\norigen: " + origen + "\nFecha: " + date + "\nPrioridad: " + prioridad + "\nDescripcion: " + descripcion);
+        console.log(JSON.stringify(NuevoAviso));
 
         //Hacer insert en BBDD y modelo
+        $.ajax({
+            type: "POST",
+            url: "@Url.Action("Create","Aviso")",
+            data: NuevoAviso,
+            dataType: "json",
+            success: function (response) {
+                if (response != null) {
+                    //alert("Name : " + response.Name + ", Designation : " + response.Designation + ", Location :" + response.Location);
+                    model = response;
+                    //Recargar grid
+                    datosGrid = model.avisos;
+                    grid.dxDataGrid("getDataSource").reload();
+                    $('#newAvisoModal').modal('toggle');
 
-
-        //Recargar grid
-        grid.dxDataGrid("getDataSource").reload();
+                } else {
+                    alert("Something went wrong");
+                }
+            },
+            failure: function (response) {
+                alert(response.responseText);
+            },
+            error: function (response) {
+                alert(response.responseText);
+            }
+        });
 
         //Desues de guardar en BBDD
         cliente = "";
