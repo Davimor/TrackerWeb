@@ -24,7 +24,7 @@ namespace TrackerWeb.Controllers
         // GET: AvisoController
         public ActionResult Index()
         {
-            return View("Index", Json(model));
+            return View("Index", model);
         }
 
         // GET: AvisoController/Details/5

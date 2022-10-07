@@ -47,9 +47,8 @@
 
 <script>
     const now = new Date();
-    //var json = '@Html.Raw(Json.Serialize(@Model))'.toString('utf8'));
-    var json = @Html.Raw(Json.Serialize(@Model));
-    var model = json.value;
+    
+    var model = @Html.Raw(Json.Serialize(@Model));
     var datosGrid = model.avisos.filter(x => !x.estado.startsWith("Cerrada"));
     var isAdmin = getCookie("trackerAdmin");
     var isAsign = getCookie("trackerAsign");
@@ -59,9 +58,6 @@
     var estado = "";
     var tipo = "";
     var origen = "";
-
-
-    //var model = JSON.parse(myJSONString.escapeSpecialChars());
 
     $("#selectCliente").selectize({
         sortField: "text",
