@@ -28,9 +28,10 @@ namespace TrackerWeb.Controllers
         }
 
         // GET: AvisoController/Details/5
-        public ActionResult Details(int id)
+        public JsonResult GetHistoral(int id)
         {
-            return View();
+            model.GetHistorial(id);
+            return Json(model.HistorialAviso);
         }
 
         // GET: AvisoController/Create
@@ -43,6 +44,7 @@ namespace TrackerWeb.Controllers
             
             using (DapperAccess db = new DapperAccess(Configuration))
             {
+                aviso.NUMCASO = db.GetSimpleData<string>("SELECT [dbo].[CrearTicketCaso]()").First();
                 db.Execute(@"INSERT INTO [dbo].[CASOS]
            ([NUMCASO]
            ,[CLIENTE]
@@ -57,7 +59,7 @@ namespace TrackerWeb.Controllers
            ,[usuario_modificacion]
            ,[fecha_modificacion])
      VALUES
-           ([dbo].[CrearTicketCaso]()
+           (@NUMCASO
            ,@IDCLIENTE
            ,@ESTADO
            ,@TIPO
@@ -69,6 +71,24 @@ namespace TrackerWeb.Controllers
            ,''
            ,@usuario_modificacion
            ,GETDATE())", aviso);
+                aviso.IDCASO = db.GetSimpleData<int>("SELECT IDCASO FROM CASOS WHERE NUMCASO = @NUMCASO",aviso).First();
+                HistorialAviso h = new HistorialAviso() {
+                    CASO = aviso.IDCASO.Value,
+                    FECHA = DateTime.Now,
+                    COMENTARIO = "Alta Aviso",
+                    USUARIO = aviso.usuario_modificacion
+                };
+
+                db.Execute(@"INSERT INTO [dbo].[HISTORICOCASOS]
+           ([CASO]
+           ,[FECHA]
+           ,[COMENTARIO]
+           ,[USUARIO])
+     VALUES
+           (@CASO
+           ,@FECHA
+           ,@COMENTARIO
+           ,@USUARIO)",h);
             }
 
             return Json(new AvisoViewModel(Configuration));

@@ -6,17 +6,20 @@ namespace TrackerWeb.Models
 {
     public class AvisoViewModel
     {
+        private IConfiguration Configuration { get; set; }
         public List<DTO.Aviso> Avisos { get; set; }
         public List<DTO.Cliente> Clientes { get; set; }
         public List<DTO.KeyValue> Fuentes { get; set; }
         public List<DTO.KeyValue> Estados { get; set; }
         public List<DTO.KeyValue> Tipos { get; set; }
         public List<DTO.KeyValue> Origenes { get; set; }
+        public List<DTO.HistorialAviso> HistorialAviso { get; set; }
 
         public AvisoViewModel(IConfiguration _Configuration)
         {
+            Configuration = _Configuration;
 
-            using (DapperAccess db = new DapperAccess(_Configuration))
+            using (DapperAccess db = new DapperAccess(Configuration))
             {
                 Avisos = db.GetSimpleData<DTO.Aviso>(@"SELECT  a.IDCASO,
 a.FECHA,
@@ -65,6 +68,13 @@ ORDER BY FECHA DESC").ToList();
                 Estados = db.GetSimpleData<KeyValue>("SELECT idEstado 'clave', DESCRIPCION 'valor' FROM ESTADOS");
                 Tipos = db.GetSimpleData<KeyValue>("SELECT idTipo 'clave', DESCRIPCION 'valor' FROM TIPOS");
                 Origenes = db.GetSimpleData<KeyValue>("SELECT idOrigen 'clave', DESCRIPCION 'valor' FROM ORIGEN");
+            }
+        }
+
+        internal void GetHistorial(int id)
+        {
+            using (DapperAccess db = new DapperAccess(Configuration)) {
+                HistorialAviso = db.GetSimpleData<HistorialAviso>("SELECT * FROM HISTORICOCASOS WHERE CASO = @id", id);
             }
         }
     }

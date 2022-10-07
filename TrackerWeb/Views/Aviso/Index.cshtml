@@ -24,7 +24,7 @@
 <br />
 <br />
 
-<div id="gridTest" class="col-md-12"> </div>
+<div id="gridAvisos" class="col-md-12"> </div>
 
 <div class="modal fade" id="newAvisoModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -34,7 +34,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body align-items-center">
-                @Html.Partial("_AddAviso")
+                @Html.Partial("_AddAviso",Model)
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -46,112 +46,11 @@
 
 
 <script>
-    const now = new Date();
-    
+
     var model = @Html.Raw(Json.Serialize(@Model));
     var datosGrid = model.avisos.filter(x => !x.estado.startsWith("Cerrada"));
-    var isAdmin = getCookie("trackerAdmin");
-    var isAsign = getCookie("trackerAsign");
-    
-    var cliente = "";
-    var fuente = "";
-    var estado = "";
-    var tipo = "";
-    var origen = "";
 
-    $("#selectCliente").selectize({
-        sortField: "text",
-        options: model.clientes,
-        labelField: 'nombre',
-        valueField: 'idcliente',
-        searchField: 'nombre',
-        render: {
-            option: function (data, escape) {
-                return '<div class="option">' +
-                    '<span class="title">' + escape(data.nombre) + '</span>' +
-                    '</div>';
-            }
-        }, onChange: function (value) {
-            cliente = value;
-        }
-    });
-
-    $("#selectFuente").selectize({
-        sortField: "text",
-        options: model.fuentes,
-        labelField: 'valor',
-        valueField: 'clave',
-        searchField: 'valor',
-        render: {
-            option: function (data, escape) {
-                return '<div class="option">' +
-                    '<span class="title">' + escape(data.valor) + '</span>' +
-                    '</div>';
-            }
-        }, onChange: function (value) {
-            fuente = value;
-        }
-    });
-
-    $("#selectEstado").selectize({
-        sortField: "text",
-        options: model.estados,
-        labelField: 'valor',
-        valueField: 'clave',
-        searchField: 'valor',
-        render: {
-            option: function (data, escape) {
-                return '<div class="option">' +
-                    '<span class="title">' + escape(data.valor) + '</span>' +
-                    '</div>';
-            }
-        }, onChange: function (value) {
-            estado = value;
-        }
-    });
-
-    $("#selectTipo").selectize({
-        sortField: "text",
-        options: model.tipos,
-        labelField: 'valor',
-        valueField: 'clave',
-        searchField: 'valor',
-        render: {
-            option: function (data, escape) {
-                return '<div class="option">' +
-                    '<span class="title">' + escape(data.valor) + '</span>' +
-                    '</div>';
-            }
-        }, onChange: function (value) {
-            tipo = value;
-        }
-    });
-
-    $("#selectOrigen").selectize({
-        sortField: "text",
-        options: model.origenes,
-        labelField: 'valor',
-        valueField: 'clave',
-        searchField: 'valor',
-        render: {
-            option: function (data, escape) {
-                return '<div class="option">' +
-                    '<span class="title">' + escape(data.valor) + '</span>' +
-                    '</div>';
-            }
-        }, onChange: function (value) {
-            origen = value;
-        }
-    });
-
-    var dateTimeBox = $("#fechaAviso").dxDateBox({
-        "opened": false,
-        type: 'datetime',
-        value: now,
-        displayFormat: 'dd/MM/yyyy HH:mm:ss',
-    });
-
-    var grid = $("#gridTest").dxDataGrid({
+    var grid = $("#gridAvisos").dxDataGrid({
         dataSource: {
             key: "idcaso",
             load: function () {
@@ -169,7 +68,7 @@
         },
         pager: {
             visible: true,
-            allowedPageSizes: [5, 10, 20, 'all'],
+            allowedPageSizes: [5, 10, 20, 100, 500],
             showPageSizeSelector: true,
             showInfo: true,
             showNavigationButtons: true,
@@ -218,20 +117,15 @@
     });
 
     $("#btnSaveNewAviso").click(() => {
-
-        var date = dateTimeBox.dxDateBox("instance").option('value');
-        var prioridad = $("input[name=prioridad]:checked").val();
-        var descripcion = $("#textDescripcion").val();
-
         var NuevoAviso = {
-            IDCLIENTE: cliente,
-            FUENTE: fuente,
-            ESTADO: estado,
-            TIPO: tipo,
-            ORIGEN: origen,
-            FECHA: date.toISOString(),
-            PRIORIDAD: prioridad,
-            DESCRIPCION: descripcion
+            IDCLIENTE: selectCliente[0].selectize.getValue(),
+            FUENTE: selectFuente[0].selectize.getValue(),
+            ESTADO: selectEstado[0].selectize.getValue(),
+            TIPO: selectTipo[0].selectize.getValue(),
+            ORIGEN: selectOrigen[0].selectize.getValue(),
+            FECHA: dateTimeBox.dxDateBox("instance").option('value').toISOString(),
+            PRIORIDAD: $("input[name=prioridad]:checked").val(),
+            DESCRIPCION: $("#textDescripcion").val()
         }
 
         console.log(JSON.stringify(NuevoAviso));
@@ -247,7 +141,7 @@
                     //alert("Name : " + response.Name + ", Designation : " + response.Designation + ", Location :" + response.Location);
                     model = response;
                     //Recargar grid
-                    datosGrid = model.avisos;
+                    datosGrid = model.avisos.filter(x => !x.estado.startsWith("Cerrada"))
                     grid.dxDataGrid("getDataSource").reload();
                     $('#newAvisoModal').modal('toggle');
                     $('#success-addAviso').show();
@@ -267,28 +161,11 @@
         });
 
         //Desues de guardar en BBDD
-        cliente = "";
-        fuente = "";
-        estado = "";
-        tipo = "";
-        origen = "";
+        selectCliente[0].selectize.clear();
+        selectFuente[0].selectize.clear();
+        selectEstado[0].selectize.clear();
+        selectTipo[0].selectize.clear();
+        selectOrigen[0].selectize.clear();
+
     });
-
-
-    function getCookie(cname) {
-        let name = cname + "=";
-        let decodedCookie = decodeURIComponent(document.cookie);
-        let ca = decodedCookie.split(';');
-        for (let i = 0; i < ca.length; i++) {
-            let c = ca[i];
-            while (c.charAt(0) == ' ') {
-                c = c.substring(1);
-            }
-            if (c.indexOf(name) == 0) {
-                return c.substring(name.length, c.length);
-            }
-        }
-        return "";
-    }
-
 </script>
