@@ -18,15 +18,14 @@ namespace TrackerWeb.Models
 
             using (DapperAccess db = new DapperAccess(_Configuration))
             {
-                Avisos = db.GetSimpleData<DTO.Aviso>(@"SELECT TOP 500
-a.IDCASO,
+                Avisos = db.GetSimpleData<DTO.Aviso>(@"SELECT  a.IDCASO,
 a.FECHA,
 a.CLIENTE 'IDCLIENTE',
 cli.NOMBRE 'CLIENTE',
 e.DESCRIPCION 'ESTADO',
 t.DESCRIPCION 'TIPO',
 o.DESCRIPCION 'ORIGEN',
-STRING_ESCAPE(cast(a.DESCRIPCION as nvarchar),'json') 'DESCRIPCION',
+STRING_ESCAPE(cast(a.DESCRIPCION as nvarchar(MAX)),'json') 'DESCRIPCION',
 a.Prioridad,
 a.NUMCASO,
 f.DESCRIPCION 'FUENTE',
@@ -43,7 +42,7 @@ LEFT JOIN AsignacionCasos ac ON ac.IdCaso = a.IDCASO
 LEFT JOIN Empleados emp ON emp.EmployeeID = ac.EmployeeID
 ORDER BY FECHA DESC").ToList();
 
-                Clientes = db.GetSimpleData<DTO.Cliente>(@"SELECT TOP 100 [IDCLIENTE]
+                Clientes = db.GetSimpleData<DTO.Cliente>(@"SELECT  [IDCLIENTE]
       ,[NOMBRE]
       ,[APELLIDOS]
       ,[DIRECCION]
@@ -58,7 +57,7 @@ ORDER BY FECHA DESC").ToList();
       ,[fecha_consulta]
       ,[usuario_modificacion]
       ,[fecha_modificacion]
-      ,STRING_ESCAPE(cast([CONTACTOS] as nvarchar),'json') as [CONTACTOS]
+      ,STRING_ESCAPE(cast([CONTACTOS] as nvarchar(MAX)),'json') as [CONTACTOS]
       ,[CODFACTUSOL]
       ,[TIPO] FROM CLIENTES");
 

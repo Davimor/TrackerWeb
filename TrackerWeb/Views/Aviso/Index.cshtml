@@ -11,8 +11,8 @@
 
 <div class="col-mb-3">
     <div class="form-check form-switch col-sm-4 float-start">
-        <input class="form-check-input" type="checkbox" id="flexSwitchSoloAsignados">
-        <label class="form-check-label" for="flexSwitchCheckDefault">Ver solo avisos sin asignar</label>
+        <input class="form-check-input" type="checkbox" id="flexSwitchSoloCerrados">
+        <label class="form-check-label" for="flexSwitchCheckDefault">Incluir avisos cerrarados</label>
     </div>
     <div class="col-sm-4 float-end">
         <button type="button" class="btn btn-light float-end" data-bs-toggle="modal" data-bs-target="#newAvisoModal">Nuevo Aviso</button>
@@ -45,12 +45,12 @@
 </div>
 
 
-
-
 <script>
     const now = new Date();
-    var model = JSON.parse(('@Html.Raw(Json.Serialize(@Model))').escapeSpecialChars());
-    var datosGrid = model.avisos;
+    //var json = '@Html.Raw(Json.Serialize(@Model))'.toString('utf8'));
+    var json = @Html.Raw(Json.Serialize(@Model));
+    var model = json.value;
+    var datosGrid = model.avisos.filter(x => !x.estado.startsWith("Cerrada"));
     var isAdmin = getCookie("trackerAdmin");
     var isAsign = getCookie("trackerAsign");
     
@@ -213,10 +213,10 @@
         ]
     });
 
-    $("#flexSwitchSoloAsignados").change(() => {
-        datosGrid = model.avisos;
-        if ($("#flexSwitchSoloAsignados").prop("checked")) {
-            datosGrid = model.avisos.filter((x) => x.asignado === true);
+    $("#flexSwitchSoloCerrados").change(() => {
+        datosGrid = model.avisos.filter(x => !x.estado.startsWith("Cerrada"));
+        if ($("#flexSwitchSoloCerrados").prop("checked")) {
+            datosGrid = model.avisos;
         }
         grid.dxDataGrid("getDataSource").reload();
     });

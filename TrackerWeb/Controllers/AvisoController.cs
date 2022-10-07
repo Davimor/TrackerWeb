@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Newtonsoft.Json;
+using System.Globalization;
 using System.Security.Claims;
 using TrackerWeb.Models;
 
@@ -23,8 +24,7 @@ namespace TrackerWeb.Controllers
         // GET: AvisoController
         public ActionResult Index()
         {
-            var json = JsonConvert.SerializeObject(model);
-            return View("Index", model);
+            return View("Index", Json(model));
         }
 
         // GET: AvisoController/Details/5
