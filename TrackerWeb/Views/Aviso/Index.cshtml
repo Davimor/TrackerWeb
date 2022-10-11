@@ -125,7 +125,7 @@
             ESTADO: selectEstado[0].selectize.getValue(),
             TIPO: selectTipo[0].selectize.getValue(),
             ORIGEN: selectOrigen[0].selectize.getValue(),
-            FECHA: dateTimeBox.dxDateBox("instance").option('value'),
+            FECHA: dateTimeBox.dxDateBox("instance").option('value').toLocaleTimeString("es-ES"),
             PRIORIDAD: $("input[name=prioridad]:checked").val(),
             DESCRIPCION: $("#textDescripcion").val(),
             IDCASO:""

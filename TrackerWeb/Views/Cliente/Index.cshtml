@@ -104,9 +104,9 @@
 
 
     function EditCliente(idcliente) {
-        
+
         var cliente = model.clientes.filter(x => x.idcliente == idcliente)[0];
-        $("#clientesModalLabel").text(cliente.nombre);
+        $("#clientesModalLabel").text(cliente.idcliente + " - " + cliente.nombre);
 
         $("#IdCliente").val(idcliente);
         $("#inputClientName").val(cliente.nombre);
