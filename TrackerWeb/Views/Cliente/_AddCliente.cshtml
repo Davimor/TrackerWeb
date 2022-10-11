@@ -185,7 +185,7 @@
                     //alert("Name : " + response.Name + ", Designation : " + response.Designation + ", Location :" + response.Location);
                     model = response;
                     //Recargar grid
-                    datosGrid = model.avisos.filter(x => !x.desestado.startsWith("Cerrada"))
+                    dataCliente = model.clientes;
                     gridClientes.dxDataGrid("getDataSource").reload();
                     $('#newClienteModal').modal('toggle');
                     $('#success-addCliente').show();
@@ -203,8 +203,6 @@
                 alert(response.responseText);
             }
         });
-
-        $('#newClienteModal').modal('hide');
 
     });
 

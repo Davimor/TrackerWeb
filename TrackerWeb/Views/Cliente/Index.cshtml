@@ -25,12 +25,12 @@
 
 <script>
     var model = @Html.Raw(Json.Serialize(@Model));
-
+    var dataCliente = model.clientes;
     var gridClientes = $("#gridClientes").dxDataGrid({
         dataSource: {
             key: "idcliente",
             load: function () {
-                return model.clientes;
+                return dataCliente;
             }
         },
         allowColumnResizing: true,
@@ -99,7 +99,9 @@
         $("#inputCodFactu").val("");
         $("#textDescripcion").val("");
         $("#clientesModalLabel").text("Nuevo Cliente");
+        $('#success-addCliente').text("!Cliente creado correctamente!");
         $('#newClienteModal').modal('show');
+
     });
 
 
@@ -122,7 +124,7 @@
         selectTipoCli[0].selectize.setValue(cliente.tipo);
         $("#inputCodFactu").val(cliente.codfactusol);
         $("#textDescripcion").val(cliente.contactos);
-
+        $('#success-addCliente').text("!Cliente editado correctamente!");
         $('#newClienteModal').modal('show');
     }
 
