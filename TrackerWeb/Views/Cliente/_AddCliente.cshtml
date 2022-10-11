@@ -186,7 +186,7 @@
                     model = response;
                     //Recargar grid
                     datosGrid = model.avisos.filter(x => !x.desestado.startsWith("Cerrada"))
-                    grid.dxDataGrid("getDataSource").reload();
+                    gridClientes.dxDataGrid("getDataSource").reload();
                     $('#newClienteModal').modal('toggle');
                     $('#success-addCliente').show();
                     $("#success-addCliente").fadeTo(2000, 500).slideUp(500, function () {
