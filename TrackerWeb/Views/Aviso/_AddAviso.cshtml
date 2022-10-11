@@ -1,4 +1,5 @@
 ﻿@model TrackerWeb.Models.AvisoViewModel
+<input type="hidden" id="IdNumCaso"/>
 <div class="mb-3 row">
     <label class="col-sm-1">Cliente:</label>
     <select id="selectCliente" class="selectized col-sm-11"></select>
@@ -128,11 +129,9 @@
         displayFormat: 'dd/MM/yyyy HH:mm:ss',
     });
 
- 
-
-    var grid = $("#gridHistorialAvisos").dxDataGrid({
+    var gridHistorial = $("#gridHistorialAvisos").dxDataGrid({
         dataSource: {
-            key: "idcaso",
+            key: "fecha",
             load: function () {
                 return model.HistorialAviso;
             }
@@ -148,7 +147,7 @@
         },
         pager: {
             visible: true,
-            allowedPageSizes: [5, 10,'all'],
+            allowedPageSizes: [5, 10, 'all'],
             showPageSizeSelector: true,
             showInfo: true,
             showNavigationButtons: false,
@@ -172,11 +171,64 @@
         },
         columns: [
             { dataField: "fecha", sortOrder: 'desc', },
-            { dataField: "descripcion", width: 200 },
-            "empleado"
+            { dataField: "comentario", width: 200 },
+            "usuario"
         ]
     });
 
-    
+    function EditCaso(idcaso) {
+
+        $('#success-addAviso').text("!Aviso actualizado correctamente!");
+
+        var caso = model.avisos.filter(x => x.idcaso === idcaso)[0];
+        $("#IdNumCaso").val(idcaso);
+        selectCliente[0].selectize.setValue(caso.idcliente)
+        selectFuente[0].selectize.setValue(caso.fuente);
+        selectEstado[0].selectize.setValue(caso.estado);
+        selectTipo[0].selectize.setValue(caso.tipo);
+        selectOrigen[0].selectize.setValue(caso.origen);
+        dateTimeBox.dxDateBox("instance").option("value", caso.fecha)
+
+        switch (caso.prioridad) {
+            case "B":
+                $("#prioridadRadio1").prop("checked", true);
+                break;
+            case "M":
+                $("#prioridadRadio2").prop("checked", true);
+                break;
+            case "A":
+                $("#prioridadRadio3").prop("checked", true);
+                break;
+        }
+
+        $("#textDescripcion").val(caso.descripcion.replaceAll("\\r\\n", "\r\n"));
+
+        $.ajax({
+            type: "POST",
+            url: "@Url.Action("GetHistorial","Aviso")",
+            data: { id: idcaso },
+            dataType: "json",
+            success: function (response) {
+                if (response != null) {
+                    //alert("Name : " + response.Name + ", Designation : " + response.Designation + ", Location :" + response.Location);
+                    model.HistorialAviso = response;
+                    //Recargar grid
+                    gridHistorial.dxDataGrid("getDataSource").reload();
+                } else {
+                    alert("Something went wrong");
+                }
+            },
+            failure: function (response) {
+                alert(response.responseText);
+            },
+            error: function (response) {
+                alert(response.responseText);
+            }
+        });
+
+        $("#newAvisoModal").modal("show");
+
+
+    }
 
 </script>

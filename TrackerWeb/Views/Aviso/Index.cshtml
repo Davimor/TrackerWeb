@@ -6,7 +6,7 @@
 <h1>Avisos</h1>
 
 <div class="alert alert-success" id="success-addAviso" style="display:none">
-    !Aviso creado correctamente!
+   
 </div>
 
 <div class="col-mb-3">
@@ -15,7 +15,7 @@
         <label class="form-check-label" for="flexSwitchCheckDefault">Incluir avisos cerrarados</label>
     </div>
     <div class="col-sm-4 float-end">
-        <button type="button" class="btn btn-light float-end" data-bs-toggle="modal" data-bs-target="#newAvisoModal">Nuevo Aviso</button>
+        <button type="button" class="btn btn-light float-end" id="btnAddNuevoAviso"@* data-bs-toggle="modal" data-bs-target="#newAvisoModal"*@>Nuevo Aviso</button>
     </div>
 </div>
 
@@ -48,7 +48,7 @@
 <script>
 
     var model = @Html.Raw(Json.Serialize(@Model));
-    var datosGrid = model.avisos.filter(x => !x.estado.startsWith("Cerrada"));
+    var datosGrid = model.avisos.filter(x => !x.desestado.startsWith("Cerrada"));
 
     var grid = $("#gridAvisos").dxDataGrid({
         dataSource: {
@@ -96,20 +96,22 @@
         columns: [
             "fecha",
             { dataField: "cliente", width: 200, format: "fixedPoint" },
-            "estado",
-            "tipo",
-            "origen",
+            "desestado",
+            "destipo",
+            "desorigen",
             "prioridad",
             "numcaso",
-            "fuente",
+            "desfuente",
             { dataField: "descripcion", width: 200 },
             "asignado",
             "empleado"
-        ]
+        ], onRowDblClick(e) {
+            EditCaso(e.data.idcaso);
+        }
     });
 
     $("#flexSwitchSoloCerrados").change(() => {
-        datosGrid = model.avisos.filter(x => !x.estado.startsWith("Cerrada"));
+        datosGrid = model.avisos.filter(x => !x.desestado.startsWith("Cerrada"));
         if ($("#flexSwitchSoloCerrados").prop("checked")) {
             datosGrid = model.avisos;
         }
@@ -123,17 +125,23 @@
             ESTADO: selectEstado[0].selectize.getValue(),
             TIPO: selectTipo[0].selectize.getValue(),
             ORIGEN: selectOrigen[0].selectize.getValue(),
-            FECHA: dateTimeBox.dxDateBox("instance").option('value').toISOString(),
+            FECHA: dateTimeBox.dxDateBox("instance").option('value'),
             PRIORIDAD: $("input[name=prioridad]:checked").val(),
-            DESCRIPCION: $("#textDescripcion").val()
+            DESCRIPCION: $("#textDescripcion").val(),
+            IDCASO:""
+        }
+
+        var url = "@Url.Action("Create","Aviso")";
+        if ($("#IdNumCaso").val() != ""){
+            url = "@Url.Action("Edit","Aviso")";
+            NuevoAviso.IDCASO = $("#IdNumCaso").val();
         }
 
         console.log(JSON.stringify(NuevoAviso));
-
         //Hacer insert en BBDD y modelo
         $.ajax({
             type: "POST",
-            url: "@Url.Action("Create","Aviso")",
+            url: url,
             data: NuevoAviso,
             dataType: "json",
             success: function (response) {
@@ -141,7 +149,7 @@
                     //alert("Name : " + response.Name + ", Designation : " + response.Designation + ", Location :" + response.Location);
                     model = response;
                     //Recargar grid
-                    datosGrid = model.avisos.filter(x => !x.estado.startsWith("Cerrada"))
+                    datosGrid = model.avisos.filter(x => !x.desestado.startsWith("Cerrada"))
                     grid.dxDataGrid("getDataSource").reload();
                     $('#newAvisoModal').modal('toggle');
                     $('#success-addAviso').show();
@@ -160,12 +168,26 @@
             }
         });
 
-        //Desues de guardar en BBDD
+    });
+
+    $('#btnAddNuevoAviso').click(() =>{
+        //Vaciar todo
+        $("#IdNumCaso").val("");
         selectCliente[0].selectize.clear();
         selectFuente[0].selectize.clear();
         selectEstado[0].selectize.clear();
         selectTipo[0].selectize.clear();
         selectOrigen[0].selectize.clear();
+        model.HistorialAviso = [];
+        gridHistorial.dxDataGrid("getDataSource").reload();
+        $("#textDescripcion").val("");
+        $("#prioridadRadio2").prop("checked", true);
+        $('#success-addAviso').text("!Aviso creado correctamente!");
+
+        $('#newAvisoModal').modal('show');
+
+
 
     });
+
 </script>

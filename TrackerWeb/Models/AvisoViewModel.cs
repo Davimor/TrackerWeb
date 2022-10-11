@@ -25,13 +25,17 @@ namespace TrackerWeb.Models
 a.FECHA,
 a.CLIENTE 'IDCLIENTE',
 cli.NOMBRE 'CLIENTE',
-e.DESCRIPCION 'ESTADO',
-t.DESCRIPCION 'TIPO',
-o.DESCRIPCION 'ORIGEN',
+a.ESTADO 'ESTADO',
+e.DESCRIPCION 'DESESTADO',
+a.TIPO 'TIPO',
+t.DESCRIPCION 'DESTIPO',
+a.ORIGEN 'ORIGEN',
+o.DESCRIPCION 'DESORIGEN',
 STRING_ESCAPE(cast(a.DESCRIPCION as nvarchar(MAX)),'json') 'DESCRIPCION',
 a.Prioridad,
 a.NUMCASO,
-f.DESCRIPCION 'FUENTE',
+a.FUENTE 'FUENTE',
+f.DESCRIPCION 'DESFUENTE',
 cast(ISNULL(ac.IdCaso, 0) as bit) 'ASIGNADO',
 emp.EmployeeID,
 emp.FirstName + ' ' + emp.LastName 'EMPLEADO'
@@ -74,7 +78,7 @@ ORDER BY FECHA DESC").ToList();
         internal void GetHistorial(int id)
         {
             using (DapperAccess db = new DapperAccess(Configuration)) {
-                HistorialAviso = db.GetSimpleData<HistorialAviso>("SELECT * FROM HISTORICOCASOS WHERE CASO = @id", id);
+                HistorialAviso = db.GetSimpleData<HistorialAviso>("SELECT * FROM HISTORICOCASOS WHERE CASO = @id", new { id = id });
             }
         }
     }

@@ -28,7 +28,8 @@ namespace TrackerWeb.Controllers
         }
 
         // GET: AvisoController/Details/5
-        public JsonResult GetHistoral(int id)
+        [HttpPost]
+        public JsonResult GetHistorial(int id)
         {
             model.GetHistorial(id);
             return Json(model.HistorialAviso);
@@ -41,7 +42,7 @@ namespace TrackerWeb.Controllers
             ClaimsIdentity identity = (ClaimsIdentity)User.Identity;
             var claim = identity.FindFirst(ClaimTypes.Sid);
             aviso.usuario_modificacion = claim.Value;
-            
+
             using (DapperAccess db = new DapperAccess(Configuration))
             {
                 aviso.NUMCASO = db.GetSimpleData<string>("SELECT [dbo].[CrearTicketCaso]()").First();
@@ -71,8 +72,9 @@ namespace TrackerWeb.Controllers
            ,''
            ,@usuario_modificacion
            ,GETDATE())", aviso);
-                aviso.IDCASO = db.GetSimpleData<int>("SELECT IDCASO FROM CASOS WHERE NUMCASO = @NUMCASO",aviso).First();
-                HistorialAviso h = new HistorialAviso() {
+                aviso.IDCASO = db.GetSimpleData<int>("SELECT IDCASO FROM CASOS WHERE NUMCASO = @NUMCASO", aviso).First();
+                HistorialAviso h = new HistorialAviso()
+                {
                     CASO = aviso.IDCASO.Value,
                     FECHA = DateTime.Now,
                     COMENTARIO = "Alta Aviso",
@@ -88,53 +90,59 @@ namespace TrackerWeb.Controllers
            (@CASO
            ,@FECHA
            ,@COMENTARIO
-           ,@USUARIO)",h);
+           ,@USUARIO)", h);
             }
 
             return Json(new AvisoViewModel(Configuration));
         }
 
-
-        // GET: AvisoController/Edit/5
-        public ActionResult Edit(int id)
-        {
-            return View();
-        }
-
-        // POST: AvisoController/Edit/5
+        // GET: AvisoController/Create
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        public JsonResult Edit(Aviso aviso)
         {
-            try
+            ClaimsIdentity identity = (ClaimsIdentity)User.Identity;
+            var claim = identity.FindFirst(ClaimTypes.Sid);
+            aviso.usuario_modificacion = claim.Value;
+
+            using (DapperAccess db = new DapperAccess(Configuration))
             {
-                return RedirectToAction(nameof(Index));
+                var antiguo=model.Avisos.Where(x => x.IDCASO == aviso.IDCASO).First();
+
+                var cambios = Helper.GetChanges(aviso,antiguo);
+                db.Execute(@"UPDATE [dbo].[CASOS]
+   SET [NUMCASO] = @NUMCASO
+      ,[CLIENTE] = @CLIENTE
+      ,[ESTADO] = @ESTADO
+      ,[TIPO] = @TIPO
+      ,[ORIGEN] = @ORIGEN
+      ,[FUENTE] = @FUENTE
+      ,[Prioridad] = @Prioridad
+      ,[FECHA] = @FECHA
+      ,[DESCRIPCION] = @DESCRIPCION
+      ,[usuario_modificacion] = @usuario_modificacion
+      ,[fecha_modificacion] = GETDATE()
+WHERE IDCASO = @IDCASO", aviso);
+                HistorialAviso h = new HistorialAviso()
+                {
+                    CASO = aviso.IDCASO.Value,
+                    FECHA = DateTime.Now,
+                    COMENTARIO = cambios,
+                    USUARIO = aviso.usuario_modificacion
+                };
+                db.Execute(@"INSERT INTO [dbo].[HISTORICOCASOS]
+           ([CASO]
+           ,[FECHA]
+           ,[COMENTARIO]
+           ,[USUARIO])
+     VALUES
+           (@CASO
+           ,@FECHA
+           ,@COMENTARIO
+           ,@USUARIO)", h);
             }
-            catch
-            {
-                return View();
-            }
+
+            return Json(new AvisoViewModel(Configuration));
         }
 
-        // GET: AvisoController/Delete/5
-        public ActionResult Delete(int id)
-        {
-            return View();
-        }
-
-        // POST: AvisoController/Delete/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
-        {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
-        }
     }
 }

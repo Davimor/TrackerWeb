@@ -17,5 +17,10 @@
         public string EmployeeID { get; set; } = "";
         public string EMPLEADO { get; set; } = "";
         public string usuario_modificacion { get; set; } = "";
+
+        public string DESESTADO { get; set; } = "";
+        public string DESTIPO { get; set; } = "";
+        public string DESORIGEN { get; set; } = "";
+        public string DESFUENTE { get; set; } = "";
     }
 }
