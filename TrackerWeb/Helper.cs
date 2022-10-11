@@ -7,6 +7,24 @@ namespace TrackerWeb
 {
     public static class Helper
     {
+        public static string GetChanges(Cliente model1, Cliente model2)
+        {
+            var ret = "";
+            Cliente changed = Difference<Cliente>(model1, model2);
+            var props = GetPropertiesNotNull(changed);
+            foreach (PropertyInfo pi in props.Where(x => x.Name != "usuario_modificacion"))
+            {
+                if (!pi.Name.StartsWith("DES"))
+                {
+                    //    ret += $"Cambia Descripción" + System.Environment.NewLine;
+                    //}
+                    //else
+                    //{
+                    ret += $"{pi.Name} cambia de {pi.GetValue(model1)} a {pi.GetValue(model2)}" + System.Environment.NewLine;
+                }
+            }
+            return ret;
+        }
 
         public static string GetChanges(Aviso model1, Aviso model2)
         {

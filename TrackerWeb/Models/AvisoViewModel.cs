@@ -60,13 +60,17 @@ ORDER BY FECHA DESC").ToList();
       ,[TELMOVIL]
       ,[EMAIL]
       ,[CARGO]
+	  ,car.DESCRIPCION 'DESCARGO'
       ,[usuario_consulta]
       ,[fecha_consulta]
       ,[usuario_modificacion]
       ,[fecha_modificacion]
       ,STRING_ESCAPE(cast([CONTACTOS] as nvarchar(MAX)),'json') as [CONTACTOS]
       ,[CODFACTUSOL]
-      ,[TIPO] FROM CLIENTES");
+      ,[TIPO]
+	  ,tc.DESCRIPCION 'DESTIPO'FROM CLIENTES c
+	  LEFT JOIN TIPOCLIENTE tc on tc.IDTIPOCLI = c.TIPO
+	  LEFT JOIN CARGOS car on car.IDCARGO = c.CARGO");
 
                 Fuentes = db.GetSimpleData<KeyValue>("SELECT idFuente 'clave', DESCRIPCION 'valor' FROM FUENTES");
                 Estados = db.GetSimpleData<KeyValue>("SELECT idEstado 'clave', DESCRIPCION 'valor' FROM ESTADOS");

@@ -29,20 +29,19 @@ namespace DTO
         public string EMAIL { get; set; } = "";
 
         public int? CARGO { get; set; }
-
-        public string usuario_consulta { get; set; } = "";
-
-        public DateTime? fecha_consulta { get; set; }
+        public string DESCARGO { get; set; } = "";
 
         public string usuario_modificacion { get; set; } = "";
 
-        public DateTime? fecha_modificacion { get; set; }
+        public DateTime? fecha_modificacion { get; set; } = DateTime.Now;
 
         public string Contactos { get; set; } = "";
 
         public int? CODFACTUSOL { get; set; }
 
         public int? TIPO { get; set; }
+
+        public string DESTIPO { get; set; } = "";
 
     }
 }

@@ -1,0 +1,211 @@
+﻿@model TrackerWeb.Models.ClienteViewModel
+
+<div class="modal fade" id="newClienteModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="clientesModalLabel">Nuevo Cliente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body align-items-center">
+                <input type="hidden" id="IdCliente" />
+                <div class="mb-3 row">
+                    <label class="col-sm-2">Nombre:</label>
+                    <div class="col-sm-10">
+                        <input type="text" id="inputClientName" class="form-control" />
+                    </div>
+                </div>
+                <div class="mb-3 row">
+                    <label class="col-sm-2">Apellidos:</label>
+                    <div class="col-sm-10">
+                        <input type="text" id="inputApellidos" class="form-control" />
+                    </div>
+                </div>
+                <div class="mb-3 row">
+                    <label class="col-sm-2">Dirección:</label>
+                    <div class="col-sm-10">
+                        <input type="text" id="inputDireccion" class="form-control" />
+                    </div>
+                </div>
+                <div class="mb-3 row">
+                    <div class="col-sm-8 row">
+                        <label class="col-sm-3">Población:</label>
+                        <div class="col-sm-9">
+                            <input type="text" id="inputPoblacion" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="col-sm-4 row">
+                        <label class="col-sm-2">CP:</label>
+                        <div class="col-sm-10">
+                            <input type="text" id="inputCP" class=" form-control" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3 row">
+                    <div class="col-sm-5 row">
+                        <label class="col-sm-5">Provincia:</label>
+                        <div class="col-sm-7">
+                            <select id="inputProvincia" class="selectized"></select>
+                        </div>
+                    </div>
+                    <div class="col-sm-4 row">
+                        <label class="col-sm-4">Telefono:</label>
+                        <div class="col-sm-8">
+                            <input type="text" id="inputFijo" class=" form-control" />
+                        </div>
+                    </div>
+                    <div class="col-sm-4 row">
+                        <label class="col-sm-3">Movil:</label>
+                        <div class="col-sm-9">
+                            <input type="text" id="inputMovil" class=" form-control" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3 row">
+                    <div class="col-sm-8 row">
+                        <label class="col-sm-3">Email:</label>
+                        <div class="col-sm-9">
+                            <input type="text" id="inputEmail" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="col-sm-4 row">
+                        <label class="col-sm-3">Cargo:</label>
+                        <div class="col-sm-9">
+                            <select id="inputCargo" class="selectized"></select>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3 row">
+                    <div class="col-sm-8 row">
+                        <label class="col-sm-3">Tipo Cliente:</label>
+                        <div class="col-sm-8">
+                            <select id="inputTipoCli" class="selectized"></select>
+                        </div>
+                    </div>
+                    <div class="col-sm-4 row">
+                        <label class="col-sm-6">Cod.Factusol:</label>
+                        <div class="col-sm-6">
+                            <input type="text" id="inputCodFactu" class=" form-control" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="textDescripcion" class="form-label">Notas:</label>
+                    <textarea class="form-control" id="textDescripcion" rows="3"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" id="btnSaveCliente" class="btn btn-primary">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    var model = @Html.Raw(Json.Serialize(@Model));
+
+    var selectCargo = $("#inputCargo").selectize({
+        sortField: "text",
+        options: model.cargos,
+        labelField: 'valor',
+        valueField: 'clave',
+        searchField: 'valor',
+        render: {
+            option: function (data, escape) {
+                return '<div class="option">' +
+                    '<span class="title">' + escape(data.valor) + '</span>' +
+                    '</div>';
+            }
+        }
+    });
+    var selectTipoCli = $("#inputTipoCli").selectize({
+        sortField: "text",
+        options: model.tipoClientes,
+        labelField: 'valor',
+        valueField: 'clave',
+        searchField: 'valor',
+        render: {
+            option: function (data, escape) {
+                return '<div class="option">' +
+                    '<span class="title">' + escape(data.valor) + '</span>' +
+                    '</div>';
+            }
+        }
+    });
+    var selectProvincia = $("#inputProvincia").selectize({
+        sortField: "text",
+        options: model.provincias,
+        labelField: 'valor',
+        valueField: 'clave',
+        searchField: 'valor',
+        render: {
+            option: function (data, escape) {
+                return '<div class="option">' +
+                    '<span class="title">' + escape(data.valor) + '</span>' +
+                    '</div>';
+            }
+        }
+    });
+
+    $("#btnSaveCliente").click(() => {
+
+        var newCliente = {
+            NOMBRE: $("#inputClientName").val(),
+            APELLIDOS: $("#inputApellidos").val(),
+            DIRECCION: $("#inputDireccion").val(),
+            POBLACION: $("#inputPoblacion").val(),
+            CODPOSTAL: $("#inputCP").val(),
+            PROVINCIA: selectProvincia[0].selectize.getValue(),
+            TELFIJO: $("#inputFijo").val(),
+            TELMOVIL: $("#inputMovil").val(),
+            EMAIL: $("#inputEmail").val(),
+            CARGO: selectCargo[0].selectize.getValue(),
+            TIPO: selectTipoCli[0].selectize.getValue(),
+            CODFACTUSOL: $("#inputCodFactu").val(),
+            Contactos: $("#textDescripcion").val(),
+            IDCLIENTE: ""
+        }
+
+        var url = "@Url.Action("Create","Cliente")";
+        if ($("#IdCliente").val() != "") {
+            url = "@Url.Action("Edit","Cliente")";
+            newCliente.IDCLIENTE = $("#IdCliente").val();
+        }
+
+        //Hacer insert en BBDD y modelo
+        $.ajax({
+            type: "POST",
+            url: url,
+            data: newCliente,
+            dataType: "json",
+            success: function (response) {
+                if (response != null) {
+                    //alert("Name : " + response.Name + ", Designation : " + response.Designation + ", Location :" + response.Location);
+                    model = response;
+                    //Recargar grid
+                    datosGrid = model.avisos.filter(x => !x.desestado.startsWith("Cerrada"))
+                    grid.dxDataGrid("getDataSource").reload();
+                    $('#newClienteModal').modal('toggle');
+                    $('#success-addCliente').show();
+                    $("#success-addCliente").fadeTo(2000, 500).slideUp(500, function () {
+                        $("#success-addCliente").slideUp(500);
+                    });
+                } else {
+                    alert("Something went wrong");
+                }
+            },
+            failure: function (response) {
+                alert(response.responseText);
+            },
+            error: function (response) {
+                alert(response.responseText);
+            }
+        });
+
+        $('#newClienteModal').modal('hide');
+
+    });
+
+</script>

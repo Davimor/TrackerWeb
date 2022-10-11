@@ -15,7 +15,7 @@
         <label class="form-check-label" for="flexSwitchCheckDefault">Incluir avisos cerrarados</label>
     </div>
     <div class="col-sm-4 float-end">
-        <button type="button" class="btn btn-light float-end" id="btnAddNuevoAviso"@* data-bs-toggle="modal" data-bs-target="#newAvisoModal"*@>Nuevo Aviso</button>
+        <button type="button" class="btn btn-light float-end" id="btnAddNuevoAviso">Nuevo Aviso</button>
     </div>
 </div>
 
@@ -137,7 +137,6 @@
             NuevoAviso.IDCASO = $("#IdNumCaso").val();
         }
 
-        console.log(JSON.stringify(NuevoAviso));
         //Hacer insert en BBDD y modelo
         $.ajax({
             type: "POST",
@@ -185,9 +184,6 @@
         $('#success-addAviso').text("!Aviso creado correctamente!");
 
         $('#newAvisoModal').modal('show');
-
-
-
     });
 
 </script>

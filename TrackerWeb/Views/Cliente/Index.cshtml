@@ -1,0 +1,129 @@
+﻿@model TrackerWeb.Models.ClienteViewModel
+@{
+    ViewData["Title"] = "Clientes";
+}
+
+<h1>Clientes</h1>
+
+<div class="alert alert-success" id="success-addCliente" style="display:none">
+</div>
+
+<div class="col-mb-3">
+    <div class="col-sm-4 float-end">
+        <button type="button" class="btn btn-light float-end" id="btnAddNuevoCliente">Nuevo Cliente</button>
+    </div>
+</div>
+
+<br />
+<br />
+<br />
+<br />
+
+<div id="gridClientes" class="col-md-12"> </div>
+
+@Html.Partial("_AddCliente",Model)
+
+<script>
+    var model = @Html.Raw(Json.Serialize(@Model));
+
+    var gridClientes = $("#gridClientes").dxDataGrid({
+        dataSource: {
+            key: "idcliente",
+            load: function () {
+                return model.clientes;
+            }
+        },
+        allowColumnResizing: true,
+        columnAutoWidth: true,
+        searchPanel: { visible: true },
+        headerFilter: { visible: true },
+        filterRow: { visible: true },
+        filterPanel: { visible: true },
+        paging: {
+            pageSize: 10,
+        },
+        pager: {
+            visible: true,
+            allowedPageSizes: [5, 10, 20, 100, 500],
+            showPageSizeSelector: true,
+            showInfo: true,
+            showNavigationButtons: true,
+        },
+        export: {
+            enabled: true
+        },
+        onExporting: function (e) {
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = workbook.addWorksheet('Hoja 1');
+
+            DevExpress.excelExporter.exportDataGrid({
+                worksheet: worksheet,
+                component: e.component
+            }).then(function () {
+                workbook.xlsx.writeBuffer().then(function (buffer) {
+                    saveAs(new Blob([buffer], { type: 'application/octet-stream' }), 'Clientes.xlsx');
+                });
+            });
+            e.cancel = true;
+        },
+        columns: [
+            "idcliente",
+            "nombre",
+            "apellidos",
+            "direccion",
+            "poblacion",
+            "telfijo",
+            "telmovil",
+            "email",
+            "destipo"
+        ], onRowDblClick(e) {
+            EditCliente(e.data.idcliente);
+        }
+    });
+
+
+    $('#btnAddNuevoCliente').click(() => {
+        //Vaciar todo
+        $("#IdCliente").val("");
+        $("#inputClientName").val("");
+        $("#inputApellidos").val("");
+        $("#inputDireccion").val("");
+        $("#inputPoblacion").val("");
+        $("#inputCP").val("");
+        selectProvincia[0].selectize.clear();
+        $("#inputFijo").val("");
+        $("#inputMovil").val("");
+        $("#inputEmail").val("");
+        selectCargo[0].selectize.clear();
+        selectTipoCli[0].selectize.clear();
+        $("#inputCodFactu").val("");
+        $("#textDescripcion").val("");
+        $("#clientesModalLabel").text("Nuevo Cliente");
+        $('#newClienteModal').modal('show');
+    });
+
+
+    function EditCliente(idcliente) {
+        
+        var cliente = model.clientes.filter(x => x.idcliente == idcliente)[0];
+        $("#clientesModalLabel").text(cliente.nombre);
+
+        $("#IdCliente").val(idcliente);
+        $("#inputClientName").val(cliente.nombre);
+        $("#inputApellidos").val(cliente.apellidos);
+        $("#inputDireccion").val(cliente.direccion);
+        $("#inputPoblacion").val(cliente.poblacion);
+        $("#inputCP").val(cliente.codpostal);
+        selectProvincia[0].selectize.setValue(cliente.provincia);
+        $("#inputFijo").val(cliente.telfijo);
+        $("#inputMovil").val(cliente.telmovil);
+        $("#inputEmail").val(cliente.email);
+        selectCargo[0].selectize.setValue(cliente.cargo);
+        selectTipoCli[0].selectize.setValue(cliente.tipo);
+        $("#inputCodFactu").val(cliente.codfactusol);
+        $("#textDescripcion").val(cliente.contactos);
+
+        $('#newClienteModal').modal('show');
+    }
+
+</script>
