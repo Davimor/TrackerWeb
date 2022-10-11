@@ -110,8 +110,7 @@ namespace TrackerWeb.Controllers
 
                 var cambios = Helper.GetChanges(aviso,antiguo);
                 db.Execute(@"UPDATE [dbo].[CASOS]
-   SET [NUMCASO] = @NUMCASO
-      ,[CLIENTE] = @CLIENTE
+   SET [CLIENTE] = @CLIENTE
       ,[ESTADO] = @ESTADO
       ,[TIPO] = @TIPO
       ,[ORIGEN] = @ORIGEN
