@@ -1,4 +1,5 @@
 ﻿using DTO;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -9,12 +10,13 @@ using TrackerWeb.Models;
 
 namespace TrackerWeb.Controllers
 {
+    [Authorize]
     public class ClienteController : Controller
     {
         public IConfiguration Configuration { get; set; }
         public ClienteViewModel model { get; set; }
 
-        public ClienteController(IConfiguration _configuration)
+        public ClienteController(IConfiguration _configuration, IHttpContextAccessor contextAccessor)
         {
             Configuration = _configuration;
             model = new ClienteViewModel(Configuration);

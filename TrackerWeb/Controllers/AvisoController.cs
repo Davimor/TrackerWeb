@@ -1,4 +1,5 @@
 ﻿using DTO;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -9,16 +10,22 @@ using TrackerWeb.Models;
 
 namespace TrackerWeb.Controllers
 {
+    [Authorize]
     public class AvisoController : Controller
     {
         public IConfiguration Configuration { get; set; }
 
         public AvisoViewModel model { get; set; }
 
-        public AvisoController(IConfiguration _configuration)
+        public bool AsignaCasos { get; set; } = false;
+
+        public AvisoController(IConfiguration _configuration, IHttpContextAccessor contextAccessor)
         {
             Configuration = _configuration;
-            model = new AvisoViewModel(Configuration);
+            ClaimsIdentity identity = (ClaimsIdentity)contextAccessor.HttpContext.User.Identity;
+            var claim = identity.FindFirst(ClaimTypes.Actor);
+            AsignaCasos = claim != null;
+            model = new AvisoViewModel(Configuration, AsignaCasos);
         }
 
         // GET: AvisoController
@@ -93,7 +100,7 @@ namespace TrackerWeb.Controllers
            ,@USUARIO)", h);
             }
 
-            return Json(new AvisoViewModel(Configuration));
+            return Json(new AvisoViewModel(Configuration, AsignaCasos));
         }
 
         // GET: AvisoController/Create
@@ -106,9 +113,9 @@ namespace TrackerWeb.Controllers
 
             using (DapperAccess db = new DapperAccess(Configuration))
             {
-                var antiguo=model.Avisos.Where(x => x.IDCASO == aviso.IDCASO).First();
+                var antiguo = model.Avisos.Where(x => x.IDCASO == aviso.IDCASO).First();
 
-                var cambios = Helper.GetChanges(aviso,antiguo);
+                var cambios = Helper.GetChanges(aviso, antiguo);
                 db.Execute(@"UPDATE [dbo].[CASOS]
    SET [CLIENTE] = @CLIENTE
       ,[ESTADO] = @ESTADO
@@ -140,7 +147,7 @@ WHERE IDCASO = @IDCASO", aviso);
            ,@USUARIO)", h);
             }
 
-            return Json(new AvisoViewModel(Configuration));
+            return Json(new AvisoViewModel(Configuration, AsignaCasos));
         }
 
     }

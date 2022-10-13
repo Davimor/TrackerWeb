@@ -20,8 +20,6 @@ namespace TrackerWeb.Controllers
 
         private readonly IConfiguration _configuration;
 
-        private readonly bool _login;
-
         public HomeController(ILogger<HomeController> logger, IConfiguration configuration)
         {
             _logger = logger;

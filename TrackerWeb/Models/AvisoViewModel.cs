@@ -14,11 +14,12 @@ namespace TrackerWeb.Models
         public List<DTO.KeyValue> Tipos { get; set; }
         public List<DTO.KeyValue> Origenes { get; set; }
         public List<DTO.HistorialAviso> HistorialAviso { get; set; }
+        public bool AsignaCasos { get; set; } = false;
 
-        public AvisoViewModel(IConfiguration _Configuration)
+        public AvisoViewModel(IConfiguration _Configuration,bool asignaCasos=false)
         {
             Configuration = _Configuration;
-
+            AsignaCasos = asignaCasos;
             using (DapperAccess db = new DapperAccess(Configuration))
             {
                 Avisos = db.GetSimpleData<DTO.Aviso>(@"SELECT  a.IDCASO,
