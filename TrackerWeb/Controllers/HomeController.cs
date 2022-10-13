@@ -10,6 +10,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Build.Framework;
 using Microsoft.AspNetCore.Identity;
+using DTO;
 
 namespace TrackerWeb.Controllers
 {
