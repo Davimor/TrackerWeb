@@ -15,6 +15,8 @@ namespace TrackerWeb.Models
         public List<DTO.KeyValue> Origenes { get; set; }
         public List<DTO.HistorialAviso> HistorialAviso { get; set; }
         public bool AsignaCasos { get; set; } = false;
+        public List<DTO.Aviso> Seleccionados { get; set; }
+        public List<DTO.Empleado> Empleados { get; set; }
 
         public AvisoViewModel(IConfiguration _Configuration,bool asignaCasos=false)
         {
@@ -39,7 +41,8 @@ a.FUENTE 'FUENTE',
 f.DESCRIPCION 'DESFUENTE',
 cast(ISNULL(ac.IdCaso, 0) as bit) 'ASIGNADO',
 emp.EmployeeID,
-emp.FirstName + ' ' + emp.LastName 'EMPLEADO'
+emp.FirstName + ' ' + emp.LastName 'EMPLEADO',
+a.fecha_modificacion
 FROM CASOS a
 LEFT JOIN CLIENTES cli ON a.CLIENTE = cli.IDCLIENTE 
 JOIN ESTADOS e On e.IDESTADO = a.ESTADO
@@ -77,6 +80,16 @@ ORDER BY FECHA DESC").ToList();
                 Estados = db.GetSimpleData<KeyValue>("SELECT idEstado 'clave', DESCRIPCION 'valor' FROM ESTADOS");
                 Tipos = db.GetSimpleData<KeyValue>("SELECT idTipo 'clave', DESCRIPCION 'valor' FROM TIPOS");
                 Origenes = db.GetSimpleData<KeyValue>("SELECT idOrigen 'clave', DESCRIPCION 'valor' FROM ORIGEN");
+
+                Empleados = db.GetSimpleData<Empleado>(@"SELECT e.EmployeeID,e.FirstName,e.LastName
+FROM Empleados e
+LEFT join AsignacionCasos ea ON ea.EmployeeID = e.EmployeeID 
+GROUP BY e.EmployeeID,e.FirstName,e.LastName");
+
+                foreach (Empleado emp in Empleados) {
+                    emp.Abiertos = Avisos.Where(x => x.EmployeeID == emp.EmployeeID && !x.DESESTADO.StartsWith("Cerrada")).Count();
+                    emp.Cerrados30D = Avisos.Where(x => x.EmployeeID == emp.EmployeeID && x.DESESTADO.StartsWith("Cerrada") && x.fecha_modificacion >= DateTime.Today.AddDays(-30)).Count();
+                }
             }
         }
 

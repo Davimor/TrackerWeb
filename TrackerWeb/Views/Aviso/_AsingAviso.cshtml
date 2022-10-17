@@ -1,0 +1,111 @@
+﻿@model TrackerWeb.Models.AvisoViewModel
+
+<div id="graficoEmpleados" class="col-md-12" style="max-height:300px"></div>
+
+<label for="empleado" class="form-label">Empleado:</label>
+<select id="empleadoToAsing" class="selectized col-sm-3"></select>
+
+<label for="gridHistorial" class="form-label">Seleccionados:</label>
+<div id="gridAvisosSeleccionados" class="col-md-12"> </div>
+
+<script>
+
+    var gridAvisosSeleccionados = $("#gridAvisosSeleccionados").dxDataGrid({
+        dataSource: {
+            key: "idcaso",
+            load: function () {
+                return model.seleccionados;
+            }
+        },
+        allowColumnResizing: true,
+        columnAutoWidth: true,
+        searchPanel: { visible: false },
+        headerFilter: { visible: false },
+        filterRow: { visible: false },
+        filterPanel: { visible: false },
+        paging: {
+            pageSize: 5,
+        },
+        pager: {
+            visible: true,
+            allowedPageSizes: [5, 10, 'all'],
+            showPageSizeSelector: true,
+            showInfo: true,
+            showNavigationButtons: false,
+        },
+        export: {
+            enabled: true
+        },
+        onExporting: function (e) {
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = workbook.addWorksheet('Historial');
+
+            DevExpress.excelExporter.exportDataGrid({
+                worksheet: worksheet,
+                component: e.component
+            }).then(function () {
+                workbook.xlsx.writeBuffer().then(function (buffer) {
+                    saveAs(new Blob([buffer], { type: 'application/octet-stream' }), 'Historial Aviso.xlsx');
+                });
+            });
+            e.cancel = true;
+        },
+        columns: [
+            { dataField: "fecha", sortOrder: 'desc', },
+            "cliente",
+            "prioridad",
+            { dataField: "descripcion", width: 200 },
+            "empleado"
+        ]
+    });
+    var grafico = $("#graficoEmpleados").dxChart({
+        dataSource: {
+            load: function () {
+                return model.empleados;
+            }
+        }, commonSeriesSettings: {
+            barPadding: 0.5,
+            argumentField: 'firstName',
+            type: 'bar',
+        },
+        series: [
+            { valueField: 'abiertos', name: 'Abiertos' },
+            { valueField: 'cerrados30D', name: 'Cerrados Ultimo Mes' },
+        ],
+        tooltip: {
+            enabled: true,
+        },
+        legend: {
+            verticalAlignment: 'bottom',
+            horizontalAlignment: 'center',
+        },
+        export: {
+            enabled: true,
+        }, title: {
+            text: 'Empleados',
+            subtitle: {
+                text: '(Casos abiertos/cerrados)',
+            }
+        }
+    });
+
+    var selectEmpleado = $("#empleadoToAsing").selectize({
+        sortField: "text",
+        options: model.empleados,
+        labelField: 'firstName',
+        valueField: 'employeeID',
+        searchField: ['firstName', 'lastName'],
+        render: {
+            option: function (data, escape) {
+                return '<div class="option">' +
+                    '<span class="title">' + escape(data.firstName) + ' ' + escape(data.lastName) + '</span>' +
+                    '</div>';
+            }, item: function (data, escape) {
+                return '<div class="option">' +
+                    '<span class="title">' + escape(data.firstName) + ' ' + escape(data.lastName) + '</span>' +
+                    '</div>';
+            }
+        }
+    });
+
+</script>

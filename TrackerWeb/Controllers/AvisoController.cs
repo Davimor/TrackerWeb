@@ -19,12 +19,18 @@ namespace TrackerWeb.Controllers
 
         public bool AsignaCasos { get; set; } = false;
 
+        public string user { get; set; } = "";
+
         public AvisoController(IConfiguration _configuration, IHttpContextAccessor contextAccessor)
         {
             Configuration = _configuration;
             ClaimsIdentity identity = (ClaimsIdentity)contextAccessor.HttpContext.User.Identity;
             var claim = identity.FindFirst(ClaimTypes.Actor);
             AsignaCasos = claim != null;
+
+            claim = identity.FindFirst(ClaimTypes.Sid);
+            user = claim.Value;
+
             model = new AvisoViewModel(Configuration, AsignaCasos);
         }
 
@@ -46,9 +52,7 @@ namespace TrackerWeb.Controllers
         [HttpPost]
         public JsonResult Create(Aviso aviso)
         {
-            ClaimsIdentity identity = (ClaimsIdentity)User.Identity;
-            var claim = identity.FindFirst(ClaimTypes.Sid);
-            aviso.usuario_modificacion = claim.Value;
+            aviso.usuario_modificacion = user;
 
             using (DapperAccess db = new DapperAccess(Configuration))
             {
@@ -107,9 +111,7 @@ namespace TrackerWeb.Controllers
         [HttpPost]
         public JsonResult Edit(Aviso aviso)
         {
-            ClaimsIdentity identity = (ClaimsIdentity)User.Identity;
-            var claim = identity.FindFirst(ClaimTypes.Sid);
-            aviso.usuario_modificacion = claim.Value;
+            aviso.usuario_modificacion = user;
 
             using (DapperAccess db = new DapperAccess(Configuration))
             {
@@ -145,6 +147,50 @@ WHERE IDCASO = @IDCASO", aviso);
            ,@FECHA
            ,@COMENTARIO
            ,@USUARIO)", h);
+            }
+
+            return Json(new AvisoViewModel(Configuration, AsignaCasos));
+        }
+
+        [HttpPost]
+        public JsonResult Asignar(string employeeID, IEnumerable<Aviso> avisos)
+        {
+
+            using (DapperAccess db = new DapperAccess(Configuration))
+            {
+                foreach (var a in avisos)
+                {
+                    var exists = !string.IsNullOrEmpty(db.GetSimpleData<string>("SELECT IDCASO FROM AsignacionCasos WHERE IdCaso= @IdCaso", new { IdCaso = a.IDCASO }).FirstOrDefault());
+                    var accion = "asignado";
+                    if (!exists)
+                    {
+                        db.Execute("INSERT INTO AsignacionCasos VALUES (@IdCaso,@EmployeeID)", new { IdCaso = a.IDCASO, EmployeeID = employeeID });
+                    }
+                    else {
+                        accion = "reasignado";
+                        db.Execute("UPDATE AsignacionCasos SET EmployeeID = @EmployeeID WHERE IDCASO = @IDCASO", new { IdCaso = a.IDCASO, EmployeeID = employeeID });
+                    }
+
+                    var emp = model.Empleados.Where(x => x.EmployeeID == employeeID).First();
+
+                    HistorialAviso h = new HistorialAviso()
+                    {
+                        CASO = a.IDCASO.Value,
+                        FECHA = DateTime.Now,
+                        COMENTARIO = $"Aviso {accion} a {emp.FirstName} {emp.LastName}",
+                        USUARIO = user
+                    };
+                    db.Execute(@"INSERT INTO [dbo].[HISTORICOCASOS]
+           ([CASO]
+           ,[FECHA]
+           ,[COMENTARIO]
+           ,[USUARIO])
+     VALUES
+           (@CASO
+           ,@FECHA
+           ,@COMENTARIO
+           ,@USUARIO)", h);
+                }
             }
 
             return Json(new AvisoViewModel(Configuration, AsignaCasos));

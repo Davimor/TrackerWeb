@@ -11,7 +11,7 @@
 <div class="col-mb-3">
     <div class="form-check form-switch col-sm-4 float-start">
         <input class="form-check-input" type="checkbox" id="flexSwitchSoloCerrados">
-        <label class="form-check-label" for="flexSwitchCheckDefault">Incluir avisos cerrarados</label>
+        <label class="form-check-label" for="flexSwitchCheckDefault">Incluir avisos cerrados</label>
         @if (Model.AsignaCasos)
         {
             <button type="button" class="btn btn-light" id="btnAsignAviso">Asignar Avisos</button>
@@ -46,12 +46,32 @@
         </div>
     </div>
 </div>
+@if (Model.AsignaCasos)
+{
+    <div class="modal fade" id="newAsignModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Asignar aviso</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body align-items-center" id="ModalAsignBody">
+                    @Html.Partial("_AsingAviso",Model)
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" id="btnAsignCaso" class="btn btn-primary">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
 
 
 <script>
 
     var model = @Html.Raw(Json.Serialize(@Model));
-    var datosGrid = model.avisos.filter(function(x){ return !x.desestado.startsWith("Cerrada"); });
+    var datosGrid = model.avisos.filter(function (x) { return !x.desestado.startsWith("Cerrada"); });
 
     var grid = $("#gridAvisos").dxDataGrid({
         dataSource: {
@@ -190,7 +210,68 @@
     });
 
     $("#btnAsignAviso").click(function () {
-        alert("Asignar");
+
+        $('#success-addAviso').text("!Aviso asignado correctamente!");
+
+        model.seleccionados = grid.dxDataGrid("instance").getSelectedRowsData();
+        gridAvisosSeleccionados.dxDataGrid("getDataSource").reload()
+        //$("#ModalAsignBody").text(AvisosSeleccionados);
+
+        $("#newAsignModal").modal("show");
+
+        grafico.dxChart("getDataSource").reload();
+
+        setTimeout(function () {
+            grafico.dxChart("instance").render();
+        }, 500);
+
     });
+
+    $("#btnAsignCaso").click(function () {
+        var empleado = selectEmpleado[0].selectize.getValue();
+
+        var a = {
+            employeeID: selectEmpleado[0].selectize.getValue(),
+            avisos: model.seleccionados
+        };
+        console.log(a);
+
+        var url = "@Url.Action("Asignar","Aviso")";
+
+        $.ajax({
+            type: "POST",
+            url: url,
+            data: a,
+            dataType: "json",
+            success: function (response) {
+                if (response != null) {
+                    //alert("Name : " + response.Name + ", Designation : " + response.Designation + ", Location :" + response.Location);
+                    model = response;
+                    //Recargar grid
+                    datosGrid = model.avisos.filter(x => !x.desestado.startsWith("Cerrada"))
+                    grid.dxDataGrid("getDataSource").reload();
+                    grid.dxDataGrid("deselectRows", a.avisos.map(x => x.idcaso));
+
+                    $('#newAsignModal').modal('toggle');
+                    $('#success-addAviso').show();
+                    $("#success-addAviso").fadeTo(2000, 500).slideUp(500, function () {
+                        $("#success-addAviso").slideUp(500);
+                    });
+                } else {
+                    alert("Something went wrong");
+                }
+            },
+            failure: function (response) {
+                alert(response.responseText);
+            },
+            error: function (response) {
+                alert(response.responseText);
+            }
+        });
+
+
+
+    });
+
 
 </script>
