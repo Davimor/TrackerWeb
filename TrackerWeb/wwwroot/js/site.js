@@ -14,3 +14,14 @@ String.prototype.escapeSpecialChars = function () {
         .replace(/\\f/g, "\\f");
 };
 
+
+const groupBy = (input, key) => {
+    return input.reduce((acc, currentValue) => {
+        let groupKey = currentValue[key];
+        if (!acc[groupKey]) {
+            acc[groupKey] = [];
+        }
+        acc[groupKey].push(currentValue);
+        return acc;
+    }, {});
+};

@@ -20,6 +20,8 @@ namespace TrackerWeb.Controllers
 
         private readonly IConfiguration _configuration;
 
+        private  HomeViewModel _model;
+
         public HomeController(ILogger<HomeController> logger, IConfiguration configuration)
         {
             _logger = logger;
@@ -31,8 +33,8 @@ namespace TrackerWeb.Controllers
             //if (HttpContext.Request.Cookies.ContainsKey("loginTracker"))
             if (User.Identity.IsAuthenticated)
             {
-                
-                return View();
+                _model = new HomeViewModel(_configuration);
+                return View(_model);
             }
             else
             {
@@ -51,14 +53,6 @@ namespace TrackerWeb.Controllers
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
-
-        [HttpGet]
-        public ActionResult Login()
-        {
-                return View();
-        }
-
-
 
         //POST: Logout
         [HttpGet]

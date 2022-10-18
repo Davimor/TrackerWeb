@@ -1,8 +1,163 @@
-﻿@model DTO.LoginVM
+﻿@model HomeViewModel
 @{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Hydroflomen";
 }
 
 <div class="text-center">
-    Indice pagina principal
+    <div class="mb-3 row">
+        <div class="col-sm-6" id="graficoAvisos"></div>
+        <div class="col-sm-6" id="graficoAvisos2"></div>
+    </div>
+    <div class="mb-3 row">
+        <div class="col-sm-6" id="graficoAvisos3"></div>
+        <div class="col-sm-6" id="graficoAvisos4"></div>
+    </div>
 </div>
+
+<script>
+
+    var estados = [];
+
+    $().ready(() => {
+        var myObject = groupBy(model.avisos, 'estado');
+
+        for (var key in myObject) {
+            if (myObject.hasOwnProperty(key)) {
+                estados.push({ estado: model.estados.filter(x => x.clave == key)[0].valor, numcasos: myObject[key].length });
+            }
+        }
+
+        chart.dxChart("getDataSource").reload();
+        chart2.dxChart("getDataSource").reload();
+        chart3.dxPieChart("getDataSource").reload();
+        chart4.dxPieChart("getDataSource").reload();
+    });
+
+    var model = @Html.Raw(Json.Serialize(@Model));
+
+    const chart = $('#graficoAvisos').dxChart({
+        dataSource: {
+            load: function () {
+                return estados;
+            }
+        }, commonSeriesSettings: {
+            barPadding: 0.5,
+            argumentField: 'estado',
+            type: 'line',
+        },
+        series: [
+            { valueField: 'numcasos', name: 'Nº Casos' }
+        ],
+        tooltip: {
+            enabled: true,
+        },
+        legend: {
+            verticalAlignment: 'bottom',
+            horizontalAlignment: 'center',
+        },
+        export: {
+            enabled: true,
+        }, title: {
+            text: 'Empleados',
+            subtitle: {
+                text: '(Casos abiertos/cerrados)',
+            }
+        }
+    });
+    const chart2 = $('#graficoAvisos2').dxChart({
+        dataSource: {
+            load: function () {
+                return estados;
+            }
+        }, commonSeriesSettings: {
+            barPadding: 0.5,
+            argumentField: 'estado',
+            type: 'bar',
+        },
+        series: [
+            { valueField: 'numcasos', name: 'Nº Casos' }
+        ],
+        tooltip: {
+            enabled: true,
+        },
+        legend: {
+            verticalAlignment: 'bottom',
+            horizontalAlignment: 'center',
+        },
+        export: {
+            enabled: true,
+        }, title: {
+            text: 'Empleados',
+            subtitle: {
+                text: '(Casos abiertos/cerrados)',
+            }
+        }
+    });
+    const chart3 = $('#graficoAvisos3').dxPieChart({
+        dataSource: {
+            load: function () {
+                return estados;
+            }
+        },
+        series: [{
+            argumentField: 'estado',
+            valueField: 'numcasos',
+            label: {
+                visible: true,
+                customizeText(arg) {
+                    return `${arg.argumentText} (${arg.percentText})`;
+                },
+            },
+        }],
+        tooltip: {
+            enabled: true,
+        },
+        legend: {
+            verticalAlignment: 'bottom',
+            horizontalAlignment: 'center',
+        },
+        export: {
+            enabled: true,
+        }, title: {
+            text: 'Empleados',
+            subtitle: {
+                text: '(Casos abiertos/cerrados)',
+            }
+        }
+    });
+    const chart4 = $('#graficoAvisos4').dxPieChart({
+        type: 'doughnut',
+        dataSource: {
+            load: function () {
+                return estados;
+            }
+        },
+        series: [{
+            argumentField: 'estado',
+            valueField: 'numcasos',
+            label: {
+                visible: true,
+                customizeText(arg) {
+                    return `${arg.argumentText} (${arg.percentText})`;
+                },
+            },
+        }],
+        tooltip: {
+            enabled: true,
+        },
+        legend: {
+            verticalAlignment: 'bottom',
+            horizontalAlignment: 'center',
+        },
+        export: {
+            enabled: true,
+        }, title: {
+            text: 'Empleados',
+            subtitle: {
+                text: '(Casos abiertos/cerrados)',
+            }
+        }
+    });
+
+
+</script>
