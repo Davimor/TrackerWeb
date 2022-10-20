@@ -24,7 +24,7 @@ namespace TrackerWeb.Models
             AsignaCasos = asignaCasos;
             using (DapperAccess db = new DapperAccess(Configuration))
             {
-                Avisos = db.GetSimpleData<DTO.Aviso>(@"SELECT  a.IDCASO,
+                Avisos = db.GetSimpleData<DTO.Aviso>(@"SELECT TOP 10 a.IDCASO,
 a.FECHA,
 a.CLIENTE 'IDCLIENTE',
 cli.NOMBRE 'CLIENTE',

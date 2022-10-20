@@ -8,17 +8,27 @@
 <div class="alert alert-success" id="success-addAviso" style="display:none">
 </div>
 
+<div class="alert alert-danger" id="danger-alert" style="display:none">
+</div>
+
 <div class="col-mb-3">
-    <div class="form-check form-switch col-sm-4 float-start">
-        <input class="form-check-input" type="checkbox" id="flexSwitchSoloCerrados">
-        <label class="form-check-label" for="flexSwitchCheckDefault">Incluir avisos cerrados</label>
-        @if (Model.AsignaCasos)
-        {
-            <button type="button" class="btn btn-light" id="btnAsignAviso">Asignar Avisos</button>
-        }
+    <div class="form-check form-switch col-sm-2 float-start">
+        <div>
+            <input class="form-check-input" type="checkbox" id="flexSwitchSoloCerrados">
+            <label class="form-check-label" for="flexSwitchCheckDefault">Incluir avisos cerrados</label>
+        </div>
     </div>
-    <div class="col-sm-4 float-end">
+    @if (Model.AsignaCasos)
+    {
+        <div class="col-sm-2 float-start">
+            <button type="button" class="btn btn-light float-end" id="btnAsignAviso">Asignar Avisos</button>
+        </div>
+    }
+    <div class="col-sm-2 float-end">
         <button type="button" class="btn btn-light float-end" id="btnAddNuevoAviso">Nuevo Aviso</button>
+    </div>
+    <div class="col-sm-2 float-end">
+        <button type="button" class="btn btn-light float-end" id="btnAddAvisoProvisional">Aviso Provisional</button>
     </div>
 </div>
 
@@ -70,6 +80,7 @@
 
 <script>
 
+    var ultimo = "";
     var model = @Html.Raw(Json.Serialize(@Model));
     var datosGrid = model.avisos.filter(function (x) { return !x.desestado.startsWith("Cerrada"); });
 
@@ -154,42 +165,14 @@
             IDCASO: ""
         }
 
-        var url = "@Url.Action("Create","Aviso")";
-        if ($("#IdNumCaso").val() != "") {
-            url = "@Url.Action("Edit","Aviso")";
-            NuevoAviso.IDCASO = $("#IdNumCaso").val();
-        }
+        SaveAviso(NuevoAviso);
 
-        //Hacer insert en BBDD y modelo
-        $.ajax({
-            type: "POST",
-            url: url,
-            data: NuevoAviso,
-            dataType: "json",
-            success: function (response) {
-                if (response != null) {
-                    //alert("Name : " + response.Name + ", Designation : " + response.Designation + ", Location :" + response.Location);
-                    model = response;
-                    //Recargar grid
-                    datosGrid = model.avisos.filter(x => !x.desestado.startsWith("Cerrada"))
-                    grid.dxDataGrid("getDataSource").reload();
-                    $('#newAvisoModal').modal('toggle');
-                    $('#success-addAviso').show();
-                    $("#success-addAviso").fadeTo(2000, 500).slideUp(500, function () {
-                        $("#success-addAviso").slideUp(500);
-                    });
-                } else {
-                    alert("Something went wrong");
-                }
-            },
-            failure: function (response) {
-                alert(response.responseText);
-            },
-            error: function (response) {
-                alert(response.responseText);
-            }
+        $('#newAvisoModal').modal('toggle');
+        $('#success-addAviso').text("Nuevo aviso creado!");
+        $('#success-addAviso').show();
+        $("#success-addAviso").fadeTo(5000, 500).slideUp(500, function () {
+            $("#success-addAviso").slideUp(500);
         });
-
     });
 
     $('#btnAddNuevoAviso').click(function () {
@@ -216,14 +199,22 @@
         model.seleccionados = grid.dxDataGrid("instance").getSelectedRowsData();
         gridAvisosSeleccionados.dxDataGrid("getDataSource").reload()
         //$("#ModalAsignBody").text(AvisosSeleccionados);
+        if (model.seleccionados.length > 0) {
 
-        $("#newAsignModal").modal("show");
+            $("#newAsignModal").modal("show");
 
-        grafico.dxChart("getDataSource").reload();
+            grafico.dxChart("getDataSource").reload();
 
-        setTimeout(function () {
-            grafico.dxChart("instance").render();
-        }, 500);
+            setTimeout(function () {
+                grafico.dxChart("instance").render();
+            }, 500);
+        } else {
+            $('#danger-alert').text("Error no se han seleccionado avisos");
+            $('#danger-alert').show();
+            $("#danger-alert").fadeTo(3000, 500).slideUp(500, function () {
+                $("#danger-alert").slideUp(500);
+            });
+        }
 
     });
 
@@ -234,7 +225,6 @@
             employeeID: selectEmpleado[0].selectize.getValue(),
             avisos: model.seleccionados
         };
-        console.log(a);
 
         var url = "@Url.Action("Asignar","Aviso")";
 
@@ -273,5 +263,62 @@
 
     });
 
+    $("#btnAddAvisoProvisional").click(function () {
+        $("#IdNumCaso").val("");
+        var NuevoAviso = {
+            IDCLIENTE: '0',
+            FUENTE: '5',
+            ESTADO: '1',
+            TIPO: '8',
+            ORIGEN: '3',
+            FECHA: new Date(Date.now()).toLocaleTimeString("es-ES"),
+            PRIORIDAD: 'M',
+            DESCRIPCION: 'Provisional!!!!!!!!!!!!!',
+            IDCASO: ""
+        }
+
+        SaveAviso(NuevoAviso);
+
+        $('#success-addAviso').text("Nuevo aviso provisional creado!");
+                $('#success-addAviso').show();
+        $("#success-addAviso").fadeTo(5000, 500).slideUp(500, function () {
+            $("#success-addAviso").slideUp(500);
+        });
+
+    });
+
+    function SaveAviso(NuevoAviso) {
+        var url = "@Url.Action("Create","Aviso")";
+        if ($("#IdNumCaso").val() != "") {
+            url = "@Url.Action("Edit","Aviso")";
+            NuevoAviso.IDCASO = $("#IdNumCaso").val();
+        }
+
+        //Hacer insert en BBDD y modelo
+
+        $.ajax({
+            type: "POST",
+            url: url,
+            data: NuevoAviso,
+            dataType: "json",
+            success: function (response) {
+                if (response != null) {
+                    //alert("Name : " + response.Name + ", Designation : " + response.Designation + ", Location :" + response.Location);
+                    model = response;
+                    //Recargar grid
+                    datosGrid = model.avisos.filter(x => !x.desestado.startsWith("Cerrada"))
+                    grid.dxDataGrid("getDataSource").reload();
+                } else {
+                    alert("Something went wrong");
+                }
+            },
+            failure: function (response) {
+                alert(response.responseText);
+            },
+            error: function (response) {
+                alert(response.responseText);
+            }
+        });
+    }
 
 </script>
