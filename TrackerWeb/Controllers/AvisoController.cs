@@ -21,6 +21,8 @@ namespace TrackerWeb.Controllers
 
         public string user { get; set; } = "";
 
+        public bool Ultimos { get; set; } = true;
+
         public AvisoController(IConfiguration _configuration, IHttpContextAccessor contextAccessor)
         {
             Configuration = _configuration;
@@ -31,7 +33,7 @@ namespace TrackerWeb.Controllers
             claim = identity.FindFirst(ClaimTypes.Sid);
             user = claim.Value;
 
-            model = new AvisoViewModel(Configuration, AsignaCasos);
+            model = new AvisoViewModel(Configuration, AsignaCasos, Ultimos);
         }
 
         // GET: AvisoController
@@ -104,7 +106,7 @@ namespace TrackerWeb.Controllers
            ,@USUARIO)", h);
             }
 
-            return Json(new AvisoViewModel(Configuration, AsignaCasos));
+            return Json(new AvisoViewModel(Configuration, AsignaCasos, Ultimos));
         }
 
         // GET: AvisoController/Create
@@ -149,7 +151,7 @@ WHERE IDCASO = @IDCASO", aviso);
            ,@USUARIO)", h);
             }
 
-            return Json(new AvisoViewModel(Configuration, AsignaCasos));
+            return Json(new AvisoViewModel(Configuration, AsignaCasos, Ultimos));
         }
 
         [HttpPost]
@@ -194,7 +196,13 @@ WHERE IDCASO = @IDCASO", aviso);
                 }
             }
 
-            return Json(new AvisoViewModel(Configuration, AsignaCasos));
+            return Json(new AvisoViewModel(Configuration, AsignaCasos, Ultimos));
+        }
+
+        [HttpPost]
+        public JsonResult GetAvisos(bool _ultimos) {
+            Ultimos = _ultimos;
+            return Json(new AvisoViewModel(Configuration, AsignaCasos, Ultimos));
         }
 
     }

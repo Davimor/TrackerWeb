@@ -18,13 +18,18 @@ namespace TrackerWeb.Models
         public List<DTO.Aviso> Seleccionados { get; set; }
         public List<DTO.Empleado> Empleados { get; set; }
 
-        public AvisoViewModel(IConfiguration _Configuration,bool asignaCasos=false)
+        public AvisoViewModel(IConfiguration _Configuration,bool asignaCasos=false, bool ultimos = true)
         {
             Configuration = _Configuration;
             AsignaCasos = asignaCasos;
+            var cond = "";
+            if (ultimos) {
+                cond = " WHERE FECHA >= DATEADD(year, -1, GETDATE()) ";
+            }
+
             using (DapperAccess db = new DapperAccess(Configuration))
             {
-                Avisos = db.GetSimpleData<DTO.Aviso>(@"SELECT a.IDCASO,
+                Avisos = db.GetSimpleData<DTO.Aviso>(@$"SELECT a.IDCASO,
 a.FECHA,
 a.CLIENTE 'IDCLIENTE',
 cli.NOMBRE 'CLIENTE',
@@ -51,6 +56,7 @@ JOIN ORIGEN o ON o.IDORIGEN = a.ORIGEN
 JOIN FUENTES f ON f.IdFuente = a.FUENTE
 LEFT JOIN AsignacionCasos ac ON ac.IdCaso = a.IDCASO
 LEFT JOIN Empleados emp ON emp.EmployeeID = ac.EmployeeID
+{cond}
 ORDER BY FECHA DESC").ToList();
 
                 Clientes = db.GetSimpleData<DTO.Cliente>(@"SELECT  [IDCLIENTE]
