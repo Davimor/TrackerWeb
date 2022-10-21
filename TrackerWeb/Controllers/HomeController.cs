@@ -61,7 +61,7 @@ namespace TrackerWeb.Controllers
             try
             {
                 HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-                return RedirectToAction("Login");
+                return RedirectToAction("");
             }
             catch
             {

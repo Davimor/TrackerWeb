@@ -84,7 +84,7 @@ namespace TrackerWeb.Controllers
             {
                 var antiguo = model.Clientes.Where(x => x.IDCLIENTE == cliente.IDCLIENTE).First();
 
-                var cambios = Helper.GetChanges(antiguo, cliente);
+                var cambios = Helper.GetChanges(antiguo, cliente,new string[] { "usuario_modificacion", "fecha_modificacion", "DESTIPO", "DESCARGO" });
 
                 db.Execute(@"UPDATE [dbo].[CLIENTES]
    SET [NOMBRE] = @NOMBRE

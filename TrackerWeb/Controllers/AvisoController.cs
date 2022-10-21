@@ -117,7 +117,7 @@ namespace TrackerWeb.Controllers
             {
                 var antiguo = model.Avisos.Where(x => x.IDCASO == aviso.IDCASO).First();
 
-                var cambios = Helper.GetChanges(aviso, antiguo);
+                var cambios = Helper.GetChanges<Aviso>(antiguo, aviso, new string[] { "FECHA", "DESESTADO", "DESTIPO", "DESORIGEN", "DESFUENTE", "fecha_modificacion", "CLIENTE", "NUMCASO", "usuario_modificacion" });
                 db.Execute(@"UPDATE [dbo].[CASOS]
    SET [CLIENTE] = @CLIENTE
       ,[ESTADO] = @ESTADO
@@ -166,7 +166,8 @@ WHERE IDCASO = @IDCASO", aviso);
                     {
                         db.Execute("INSERT INTO AsignacionCasos VALUES (@IdCaso,@EmployeeID)", new { IdCaso = a.IDCASO, EmployeeID = employeeID });
                     }
-                    else {
+                    else
+                    {
                         accion = "reasignado";
                         db.Execute("UPDATE AsignacionCasos SET EmployeeID = @EmployeeID WHERE IDCASO = @IDCASO", new { IdCaso = a.IDCASO, EmployeeID = employeeID });
                     }
