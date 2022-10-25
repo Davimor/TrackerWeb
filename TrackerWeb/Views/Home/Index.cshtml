@@ -12,6 +12,12 @@
         <div class="col-sm-6" id="graficoAvisos3"></div>
         <div class="col-sm-6" id="graficoAvisos4"></div>
     </div>
+
+
+    @*<form method="post" id="testMail" target="_blank" enctype="text/plain">*@
+        <a class="btn btn-primary" id="btnSendMail">Test Mail</a>
+   @* </form>*@
+
 </div>
 
 <script>
@@ -157,6 +163,16 @@
                 text: '(Casos abiertos/cerrados)',
             }
         }
+    });
+
+    var cont = 0;
+    
+    $("#btnSendMail").click(function(x) {
+        cont++;
+        var subject = "Contador "+ cont;
+        var body = "Contador " + cont + "\nPrueba = aaa";
+        var action = "mailto:example@example.com?&subject=" + encodeURI(subject) + "&body=" + encodeURI(body);
+        $("#btnSendMail").attr('href', action);
     });
 
 
