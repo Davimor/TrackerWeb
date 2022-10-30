@@ -24,6 +24,12 @@ namespace TrackerWeb
             return conn.Execute(query, parm, commandTimeout: timeout);
         }
 
+        internal object ExecuteScalar(string query, object? parm = null, int timeout = 30)
+        {
+            query = query + " SELECT SCOPE_IDENTITY()";
+            return conn.ExecuteScalar(query, parm, commandTimeout: timeout);
+        }
+
         internal List<T> GetSimpleData<T>(string query, object? parm = null, int timeout = 30)
         {
             return conn.Query<T>(query, parm, commandTimeout: timeout).ToList();

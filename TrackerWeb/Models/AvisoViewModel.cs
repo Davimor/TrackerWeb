@@ -17,13 +17,15 @@ namespace TrackerWeb.Models
         public bool AsignaCasos { get; set; } = false;
         public List<DTO.Aviso> Seleccionados { get; set; }
         public List<DTO.Empleado> Empleados { get; set; }
+        public List<DTO.Documento> DocumentosAviso { get; set; }
 
-        public AvisoViewModel(IConfiguration _Configuration,bool asignaCasos=false, bool ultimos = true)
+        public AvisoViewModel(IConfiguration _Configuration, bool asignaCasos = false, bool ultimos = true)
         {
             Configuration = _Configuration;
             AsignaCasos = asignaCasos;
             var cond = "";
-            if (ultimos) {
+            if (ultimos)
+            {
                 cond = " WHERE FECHA >= DATEADD(year, -1, GETDATE()) ";
             }
 
@@ -92,7 +94,8 @@ FROM Empleados e
 LEFT join AsignacionCasos ea ON ea.EmployeeID = e.EmployeeID 
 GROUP BY e.EmployeeID,e.FirstName,e.LastName");
 
-                foreach (Empleado emp in Empleados) {
+                foreach (Empleado emp in Empleados)
+                {
                     emp.Abiertos = Avisos.Where(x => x.EmployeeID == emp.EmployeeID && !x.DESESTADO.StartsWith("Cerrada")).Count();
                     emp.Cerrados30D = Avisos.Where(x => x.EmployeeID == emp.EmployeeID && x.DESESTADO.StartsWith("Cerrada") && x.fecha_modificacion >= DateTime.Today.AddDays(-30)).Count();
                 }
@@ -101,8 +104,18 @@ GROUP BY e.EmployeeID,e.FirstName,e.LastName");
 
         internal void GetHistorial(int id)
         {
-            using (DapperAccess db = new DapperAccess(Configuration)) {
+            using (DapperAccess db = new DapperAccess(Configuration))
+            {
                 HistorialAviso = db.GetSimpleData<HistorialAviso>("SELECT * FROM HISTORICOCASOS WHERE CASO = @id", new { id = id });
+            }
+        }
+        internal void GetDocumentos(int id)
+        {
+            using (DapperAccess db = new DapperAccess(Configuration))
+            {
+                DocumentosAviso = db.GetSimpleData<Documento>(@"SELECT d.Id, d.Name, d.ContentType, d.UploadUser,d.UploadDate FROM Documentos d
+  JOIN CASODOCUMENTO cd ON cd.idDocumento = d.id
+  WHERE cd.Idcaso = @id", new { id = id });
             }
         }
     }

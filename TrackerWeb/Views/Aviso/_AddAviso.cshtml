@@ -1,5 +1,5 @@
 ﻿@model TrackerWeb.Models.AvisoViewModel
-<input type="hidden" id="IdNumCaso"/>
+<input type="hidden" id="IdNumCaso" />
 <div class="mb-3 row">
     <label class="col-sm-1">Cliente:</label>
     <select id="selectCliente" class="selectized col-sm-11"></select>
@@ -34,6 +34,7 @@
         <input class="form-check-input" type="radio" name="prioridad" id="prioridadRadio3" value="A">
         <label class="form-check-label" for="inlineRadio3">Alta</label>
     </div>
+    <button class="btn btn-secondary float-end" id="btnVerDocumentacion" style="display:none">Documentacion</button>
 </div>
 <div class="mb-3">
     <label for="textDescripcion" class="form-label">Descripción:</label>
@@ -42,6 +43,36 @@
 
 <label for="gridHistorial" class="form-label">Historial:</label>
 <div id="gridHistorialAvisos" class="col-md-12"> </div>
+
+<div class="modal fade" id="DocumentosModal" tabindex="-9" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Documentación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body align-items-center">
+                <div class="alert alert-success" id="success-Upload" style="display:none">
+                    Documento/s Guardado/s!
+                </div>
+                <form id="uploadform" method="post" EncType="multipart/form-data" action="@Url.Action("UploadFiles","Document")" target="_blank">
+                    <div class="upload-container">
+                        <input type="file" id="file_upload" multiple="true" name="fileInput" />
+                    </div>
+                    <br>
+                    <div class="text-center">
+                        <button class="btn btn-primary" onclick="uploadFiles()" type="button">Subir Documentos</button>
+                    </div>
+                </form>
+                <div id="gridDocumentos"></div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
 
@@ -176,6 +207,43 @@
         ]
     });
 
+
+    var gridDocumentos = $("#gridDocumentos").dxDataGrid({
+        dataSource: {
+            key: "id",
+            load: function () {
+                return model.documentosAviso;
+            }
+        },
+        allowColumnResizing: true,
+        columnAutoWidth: true,
+        searchPanel: { visible: false },
+        headerFilter: { visible: false },
+        filterRow: { visible: false },
+        filterPanel: { visible: false },
+        paging: {
+            pageSize: 5,
+        },
+        pager: {
+            visible: true,
+            allowedPageSizes: [5, 10, 'all'],
+            showPageSizeSelector: true,
+            showInfo: true,
+            showNavigationButtons: false,
+        },
+        columns: [
+            { dataField: "name", caption: "Nombre" },
+            { dataField: "uploadUser", caption: "Usuario" },
+            { dataField: "uploadDate", caption: "Fecha Subida", sortOrder: 'desc' },
+            {
+                dataField: "Descargar",
+                cellTemplate: function (element, info) {
+                    element.append("<button class='btn btn-link' type='button' onclick=downloadFile(" + info.data.id + ")>Down</button>");
+                }
+            }
+        ]
+    });
+
     function EditCaso(idcaso) {
 
         $('#success-addAviso').text("!Aviso actualizado correctamente!");
@@ -188,6 +256,7 @@
         selectTipo[0].selectize.setValue(caso.tipo);
         selectOrigen[0].selectize.setValue(caso.origen);
         dateTimeBox.dxDateBox("instance").option("value", caso.fecha)
+        $("#btnVerDocumentacion").show()
 
         switch (caso.prioridad) {
             case "B":
@@ -226,9 +295,68 @@
             }
         });
 
+        $.ajax({
+            type: "POST",
+            url: "@Url.Action("GetDocumentos","Aviso")",
+            data: { id: idcaso },
+            dataType: "json",
+            success: function (response) {
+                if (response != null) {
+                    //alert("Name : " + response.Name + ", Designation : " + response.Designation + ", Location :" + response.Location);
+                    model.documentosAviso = response;
+                    //Recargar grid
+                    gridDocumentos.dxDataGrid("getDataSource").reload();
+                } else {
+                    alert("Something went wrong");
+                }
+            },
+            failure: function (response) {
+                alert(response.responseText);
+            },
+            error: function (response) {
+                alert(response.responseText);
+            }
+        });
+
         $("#newAvisoModal").modal("show");
 
 
+    }
+
+    $("#btnVerDocumentacion").click(function () {
+        $("#DocumentosModal").modal("show");
+    });
+
+    function uploadFiles() {
+
+        var data = new FormData();
+
+        for (var i = 0; i < $('#file_upload')[0].files.length; i++) {
+            data.append('file-' + i, $('#file_upload')[0].files[i]);
+        }
+
+        data.append('idcaso', $("#IdNumCaso").val());
+
+        $.ajax({
+            url: '@Url.Action("UploadFiles","Document")',
+            type: 'POST',
+            data: data,
+            dataType: 'json',
+            contentType: false,
+            processData: false,
+            success: function (data) {
+                $('#file_upload').val("");
+                $('#success-Upload').show();
+                $("#success-Upload").fadeTo(5000, 500).slideUp(500, function () {
+                    $("#success-Upload").slideUp(500);
+                });
+            }
+        });
+
+    }
+
+    function downloadFile(idDoc) {
+                window.location = '@Url.Action("GetFile","Document")'+'?id='+idDoc;
     }
 
 </script>

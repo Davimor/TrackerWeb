@@ -3,7 +3,7 @@
     public class Aviso
     {
         public int? IDCASO { get; set; }
-        public DateTime? FECHA { get; set; }        
+        public DateTime? FECHA { get; set; }
         public int? IDCLIENTE { get; set; }
         public string CLIENTE { get; set; } = "";
         public string ESTADO { get; set; } = "";
@@ -22,6 +22,7 @@
         public string DESTIPO { get; set; } = "";
         public string DESORIGEN { get; set; } = "";
         public string DESFUENTE { get; set; } = "";
-        
+        public List<Documento> Documentos { get; set; } = new List<Documento>();
+
     }
 }

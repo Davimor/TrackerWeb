@@ -55,6 +55,14 @@ namespace TrackerWeb.Controllers
             return Json(model.HistorialAviso);
         }
 
+        // GET: AvisoController/Details/5
+        [HttpPost]
+        public JsonResult GetDocumentos(int id)
+        {
+            model.GetDocumentos(id);
+            return Json(model.DocumentosAviso);
+        }
+
         // GET: AvisoController/Create
         [HttpPost]
         public JsonResult Create(Aviso aviso)
