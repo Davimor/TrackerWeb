@@ -3,9 +3,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Newtonsoft.Json;
 using System.Globalization;
 using System.Security.Claims;
+using System.Text.Json;
 using TrackerWeb.Models;
 
 namespace TrackerWeb.Controllers
@@ -13,27 +13,32 @@ namespace TrackerWeb.Controllers
     [Authorize]
     public class AvisoController : Controller
     {
+        private readonly ILogger<HomeController> _logger;
         public IConfiguration Configuration { get; set; }
 
         public AvisoViewModel model { get; set; }
 
         public bool AsignaCasos { get; set; } = false;
 
-        public string user { get; set; } = "";
+        private Empleado user;
 
         public bool Ultimos { get; set; } = true;
 
-        public AvisoController(IConfiguration _configuration, IHttpContextAccessor contextAccessor)
+        public AvisoController(ILogger<HomeController> logger,IConfiguration _configuration, IHttpContextAccessor contextAccessor)
         {
+            _logger = logger;
+            _logger.LogDebug(1, "NLog injected into AvisoController");
+
             Configuration = _configuration;
+
             ClaimsIdentity identity = (ClaimsIdentity)contextAccessor.HttpContext.User.Identity;
-            var claim = identity.FindFirst(ClaimTypes.Actor);
-            AsignaCasos = claim != null;
+            var userdata = identity.FindFirst(ClaimTypes.UserData);
+            if (userdata != null)
+            {
+                user = JsonSerializer.Deserialize<Empleado>(userdata.Value);
+            }
 
-            claim = identity.FindFirst(ClaimTypes.Sid);
-            user = claim.Value;
-
-            model = new AvisoViewModel(Configuration, AsignaCasos, Ultimos);
+            model = new AvisoViewModel(Configuration, user.AsignaCasos, Ultimos);
         }
 
         // GET: AvisoController
@@ -54,7 +59,7 @@ namespace TrackerWeb.Controllers
         [HttpPost]
         public JsonResult Create(Aviso aviso)
         {
-            aviso.usuario_modificacion = user;
+            aviso.usuario_modificacion = user.IdUser;
 
             using (DapperAccess db = new DapperAccess(Configuration))
             {
@@ -113,7 +118,7 @@ namespace TrackerWeb.Controllers
         [HttpPost]
         public JsonResult Edit(Aviso aviso)
         {
-            aviso.usuario_modificacion = user;
+            aviso.usuario_modificacion = user.IdUser;
 
             using (DapperAccess db = new DapperAccess(Configuration))
             {
@@ -181,7 +186,7 @@ WHERE IDCASO = @IDCASO", aviso);
                         CASO = a.IDCASO.Value,
                         FECHA = DateTime.Now,
                         COMENTARIO = $"Aviso {accion} a {emp.FirstName} {emp.LastName}",
-                        USUARIO = user
+                        USUARIO = user.IdUser
                     };
                     db.Execute(@"INSERT INTO [dbo].[HISTORICOCASOS]
            ([CASO]

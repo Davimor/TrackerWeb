@@ -3,9 +3,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Newtonsoft.Json;
 using System.Globalization;
 using System.Security.Claims;
+using System.Text.Json;
 using TrackerWeb.Models;
 
 namespace TrackerWeb.Controllers
@@ -13,13 +13,23 @@ namespace TrackerWeb.Controllers
     [Authorize]
     public class ClienteController : Controller
     {
+        private readonly ILogger<HomeController> _logger;
         public IConfiguration Configuration { get; set; }
         public ClienteViewModel model { get; set; }
+        private Empleado user;
 
-        public ClienteController(IConfiguration _configuration, IHttpContextAccessor contextAccessor)
+        public ClienteController(ILogger<HomeController> logger, IConfiguration _configuration, IHttpContextAccessor contextAccessor)
         {
+            _logger = logger;
+            _logger.LogDebug(1, "NLog injected into ClienteController");
             Configuration = _configuration;
             model = new ClienteViewModel(Configuration);
+            ClaimsIdentity identity = (ClaimsIdentity)contextAccessor.HttpContext.User.Identity;
+            var userdata = identity.FindFirst(ClaimTypes.UserData);
+            if (userdata != null)
+            {
+                user = JsonSerializer.Deserialize<Empleado>(userdata.Value);
+            }
         }
 
         public IActionResult Index()
@@ -30,9 +40,8 @@ namespace TrackerWeb.Controllers
         [HttpPost]
         public JsonResult Create(Cliente cliente)
         {
-            ClaimsIdentity identity = (ClaimsIdentity)User.Identity;
-            var claim = identity.FindFirst(ClaimTypes.Sid);
-            cliente.usuario_modificacion = claim.Value;
+           
+            cliente.usuario_modificacion = user.IdUser;
 
             using (DapperAccess db = new DapperAccess(Configuration))
             {
@@ -75,16 +84,14 @@ namespace TrackerWeb.Controllers
         [HttpPost]
         public JsonResult Edit(Cliente cliente)
         {
-            ClaimsIdentity identity = (ClaimsIdentity)User.Identity;
-            var claim = identity.FindFirst(ClaimTypes.Sid);
-            cliente.usuario_modificacion = claim.Value;
+            cliente.usuario_modificacion = user.IdUser;
             cliente.fecha_modificacion = DateTime.Now;
 
             using (DapperAccess db = new DapperAccess(Configuration))
             {
                 var antiguo = model.Clientes.Where(x => x.IDCLIENTE == cliente.IDCLIENTE).First();
 
-                var cambios = Helper.GetChanges(antiguo, cliente,new string[] { "usuario_modificacion", "fecha_modificacion", "DESTIPO", "DESCARGO" });
+                var cambios = Helper.GetChanges(antiguo, cliente, new string[] { "usuario_modificacion", "fecha_modificacion", "DESTIPO", "DESCARGO" });
 
                 db.Execute(@"UPDATE [dbo].[CLIENTES]
    SET [NOMBRE] = @NOMBRE

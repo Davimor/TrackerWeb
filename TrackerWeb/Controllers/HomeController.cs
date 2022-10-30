@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Build.Framework;
 using Microsoft.AspNetCore.Identity;
 using DTO;
+using System.Text.Json;
 
 namespace TrackerWeb.Controllers
 {
@@ -20,12 +21,22 @@ namespace TrackerWeb.Controllers
 
         private readonly IConfiguration _configuration;
 
-        private  HomeViewModel _model;
+        private HomeViewModel _model;
 
-        public HomeController(ILogger<HomeController> logger, IConfiguration configuration)
+        private Empleado user;
+
+        public HomeController(ILogger<HomeController> logger, IConfiguration configuration, IHttpContextAccessor contextAccessor)
         {
             _logger = logger;
+            _logger.LogDebug(1, "NLog injected into HomeController");
             _configuration = configuration;
+
+            ClaimsIdentity identity = (ClaimsIdentity)contextAccessor.HttpContext.User.Identity;
+            var userdata = identity.FindFirst(ClaimTypes.UserData);
+            if (userdata != null)
+            {
+                user = JsonSerializer.Deserialize<Empleado>(userdata.Value);
+            }
         }
 
         public IActionResult Index()
@@ -61,10 +72,14 @@ namespace TrackerWeb.Controllers
             try
             {
                 HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                _logger.LogInformation($"User {user.IdUser} singout");
                 return RedirectToAction("");
             }
-            catch
+            catch(Exception ex)
             {
+                var controller=this.ControllerContext.RouteData.Values["controller"].ToString();
+                var method = this.ControllerContext.RouteData.Values["action"].ToString();
+                _logger.LogError($"{controller}/{method}->  {user.IdUser} : {ex.Message}");
                 throw;
             }
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
@@ -72,14 +87,14 @@ namespace TrackerWeb.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Login(LoginVM entity)
+        public ActionResult Login(Empleado entity)
         {
             try
             {
-                LoginVM? user = null;
+                Empleado? user = null;
                 using (DapperAccess db = new DapperAccess(_configuration))
                 {
-                    user = db.GetSimpleData<LoginVM>("SELECT * FROM USUARIOS WHERE IdUser = @Nombre", entity).FirstOrDefault();
+                    user = db.GetSimpleData<Empleado>("SELECT * FROM Empleados WHERE IdUser = @Nombre", entity).FirstOrDefault();
                 }
 
                 if (user != null)
@@ -91,17 +106,11 @@ namespace TrackerWeb.Controllers
                         cookieOptions.Secure = true;
                         TempData["ErrorMSG"] = null;
 
-                        var claims = new List<Claim> { new Claim(ClaimTypes.Name, user.Nombre + " " + user.Apellidos) };
+                        var claims = new List<Claim> { new Claim(ClaimTypes.Name, user.FirstName + " " + user.LastName) };
                         claims.Add(new Claim(ClaimTypes.Sid, user.IdUser));
 
-                        if (user.Administrador)
-                        {
-                            claims.Add(new Claim(ClaimTypes.Role, "Administrator"));
-                        }
-                        if (user.AsignaCasos)
-                        {
-                            claims.Add(new Claim(ClaimTypes.Actor, "Casos"));
-                        }
+                        claims.Add(new Claim(ClaimTypes.UserData, JsonSerializer.Serialize(user)));
+
                         var authProperties = new AuthenticationProperties
                         {
                             ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(30)
@@ -133,8 +142,11 @@ namespace TrackerWeb.Controllers
                     return View(entity);
                 }
             }
-            catch
+            catch(Exception ex)
             {
+                var controller = this.ControllerContext.RouteData.Values["controller"].ToString();
+                var method = this.ControllerContext.RouteData.Values["action"].ToString();
+                _logger.LogError($"{controller}/{method}->  {entity.IdUser} : {ex.Message}");
                 throw;
 
             }

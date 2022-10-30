@@ -47,19 +47,6 @@ public class Startup
         app.UseAuthentication();
         app.UseAuthorization();
         app.MapRazorPages();
-        //if (env.IsDevelopment())
-        //{
-        //    app.Use(async (context, next) =>
-        //    {
-        //        var claims = new List<Claim> { new Claim(ClaimTypes.Name, "Debug") };
-        //        claims.Add(new Claim(ClaimTypes.Sid, "DEBUG"));
-        //        claims.Add(new Claim(ClaimTypes.Role, "Administrator"));
-        //        claims.Add(new Claim(ClaimTypes.Actor, "Casos"));
-        //        var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-        //        context.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
-        //        await next.Invoke();
-        //    });
-        //}
         app.MapControllerRoute(
           name: "default",
           pattern: "{controller=Home}/{action=Index}/{id?}");
