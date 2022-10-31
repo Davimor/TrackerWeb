@@ -1,4 +1,5 @@
 ﻿using DTO;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis;
 using System.Security.Claims;
@@ -29,6 +30,7 @@ namespace TrackerWeb.Controllers
             }
         }
         [HttpPost]
+        [Authorize]
         public JsonResult UploadFiles(long idcaso)
         {
             var files = Request.Form.Files;
@@ -43,6 +45,8 @@ namespace TrackerWeb.Controllers
                     }
                 }
             }
+
+            List<Documento> ret = new List<Documento>();
 
             using (DapperAccess db = new DapperAccess(Configuration))
             {
@@ -63,15 +67,19 @@ namespace TrackerWeb.Controllers
            ,@UploadDate)", doc);
                     //Inserto relacion doc y caso
                     db.Execute("INSERT INTO CASODOCUMENTO (IDCASO,IDDOCUMENTO) VALUES ( @Idcaso,@IdDoc)", new { Idcaso = idcaso, IdDoc = iddoc });
-
+                    ret = db.GetSimpleData<Documento>(@"SELECT d.Id, d.Name, d.ContentType, d.UploadUser,d.UploadDate FROM Documentos d
+  JOIN CASODOCUMENTO cd ON cd.idDocumento = d.id
+  WHERE cd.Idcaso = @id", new { id = idcaso });
                 }
             }
 
-            return Json(true);
+            return Json(ret);
         }
 
         [HttpGet]
-        public ActionResult GetFile(int id) {
+        [Authorize]
+        public ActionResult GetFile(int id)
+        {
             var doc = new Documento();
             using (DapperAccess db = new DapperAccess(Configuration))
             {

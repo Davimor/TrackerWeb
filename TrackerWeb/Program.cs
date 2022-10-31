@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.Extensions.Logging;
 using NLog;
 using NLog.Web;
@@ -16,7 +17,9 @@ try
             options.ExpireTimeSpan = TimeSpan.FromMinutes(20);
             options.SlidingExpiration = true;
             options.AccessDeniedPath = "/Forbidden/";
+            options.LoginPath = "/Home/Index/";
         });
+
     builder.Host.UseNLog();
     var startup = new Startup(builder.Configuration);
     startup.ConfigureServices(builder.Services); // calling ConfigureServices method

@@ -12,6 +12,8 @@ using Microsoft.Build.Framework;
 using Microsoft.AspNetCore.Identity;
 using DTO;
 using System.Text.Json;
+using Microsoft.CodeAnalysis;
+using static System.Net.WebRequestMethods;
 
 namespace TrackerWeb.Controllers
 {
@@ -39,7 +41,7 @@ namespace TrackerWeb.Controllers
             }
         }
 
-        public IActionResult Index()
+        public IActionResult Index(string ReturnUrl = "")
         {
             //if (HttpContext.Request.Cookies.ContainsKey("loginTracker"))
             if (User.Identity.IsAuthenticated)
@@ -49,7 +51,6 @@ namespace TrackerWeb.Controllers
             }
             else
             {
-                string a = User.Identity.Name;
                 return View("Login");
             }
         }
@@ -75,9 +76,9 @@ namespace TrackerWeb.Controllers
                 _logger.LogInformation($"User {user.IdUser} singout");
                 return RedirectToAction("");
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                var controller=this.ControllerContext.RouteData.Values["controller"].ToString();
+                var controller = this.ControllerContext.RouteData.Values["controller"].ToString();
                 var method = this.ControllerContext.RouteData.Values["action"].ToString();
                 _logger.LogError($"{controller}/{method}->  {user.IdUser} : {ex.Message}");
                 throw;
@@ -142,7 +143,7 @@ namespace TrackerWeb.Controllers
                     return View(entity);
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 var controller = this.ControllerContext.RouteData.Values["controller"].ToString();
                 var method = this.ControllerContext.RouteData.Values["action"].ToString();

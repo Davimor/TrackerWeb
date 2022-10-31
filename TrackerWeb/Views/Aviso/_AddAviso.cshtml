@@ -228,7 +228,7 @@
             visible: true,
             allowedPageSizes: [5, 10, 'all'],
             showPageSizeSelector: true,
-            showInfo: true, 
+            showInfo: true,
             showNavigationButtons: false,
         },
         columns: [
@@ -329,6 +329,10 @@
 
     function uploadFiles() {
 
+        if ($('#file_upload')[0].files.length == 0){
+            alert("Tienes que seleccionar al menos un fichero");
+            return;
+        }
         var data = new FormData();
 
         for (var i = 0; i < $('#file_upload')[0].files.length; i++) {
@@ -344,19 +348,22 @@
             dataType: 'json',
             contentType: false,
             processData: false,
-            success: function (data) {
+            success: function (response) {
                 $('#file_upload').val("");
                 $('#success-Upload').show();
                 $("#success-Upload").fadeTo(5000, 500).slideUp(500, function () {
                     $("#success-Upload").slideUp(500);
                 });
+                //Recargar grid
+                model.documentosAviso = response;
+                gridDocumentos.dxDataGrid("getDataSource").reload();
             }
         });
 
     }
 
     function downloadFile(idDoc) {
-                window.location = '@Url.Action("GetFile","Document")'+'?id='+idDoc;
+        window.location = '@Url.Action("GetFile","Document")' + '?id=' + idDoc;
     }
 
 </script>
