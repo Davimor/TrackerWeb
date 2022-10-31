@@ -54,7 +54,7 @@ namespace TrackerWeb.Controllers
            ,[ContentType]
            ,[Data]
            ,[UploadUser]
-           ,[UpladDate])
+           ,[UploadDate])
      VALUES
            (@Name
            ,@ContentType
