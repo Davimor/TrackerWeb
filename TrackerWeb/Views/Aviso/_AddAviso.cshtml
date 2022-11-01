@@ -86,9 +86,9 @@
         searchField: 'nombre',
         render: {
             option: function (data, escape) {
-                return '<div class="option">' +
-                    '<span class="title">' + escape(data.nombre) + '</span>' +
-                    '</div>';
+                return "<div>" + (data.nombre ? '<span class="name">' + escape(data.nombre) + ' ' + escape(data.apellidos) + "</span>" : "") + (data.email ? '<span class="email">|| ' + escape(data.email) + "</span>" : "") + "</div>";
+            }, item: function (data, escape) {
+                return "<div>" + (data.nombre ? '<span class="name">' + escape(data.nombre) + ' ' + escape(data.apellidos) + "</span>" : "") + (data.email ? '<span class="email">|| ' + escape(data.email) + "</span>" : "") + "</div>";
             }
         }
     });
@@ -329,7 +329,7 @@
 
     function uploadFiles() {
 
-        if ($('#file_upload')[0].files.length == 0){
+        if ($('#file_upload')[0].files.length == 0) {
             alert("Tienes que seleccionar al menos un fichero");
             return;
         }

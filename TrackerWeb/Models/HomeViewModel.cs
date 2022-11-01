@@ -10,7 +10,9 @@ namespace TrackerWeb.Models
 
         public List<KeyValue> Estados { get; set; } = new List<KeyValue>();
 
-        public HomeViewModel(IConfiguration _configuration)
+        public Empleado user { get; set; }
+
+        public HomeViewModel(IConfiguration _configuration, Empleado _user)
         {
             configuration = _configuration;
 
@@ -45,7 +47,10 @@ LEFT JOIN AsignacionCasos ac ON ac.IdCaso = a.IDCASO
 LEFT JOIN Empleados emp ON emp.EmployeeID = ac.EmployeeID
 ORDER BY FECHA DESC").ToList();
                 Estados = db.GetSimpleData<KeyValue>("SELECT idEstado 'clave', DESCRIPCION 'valor' FROM ESTADOS");
+                user = _user;
             }
+
+            this.user = user;
         }
     }
 }

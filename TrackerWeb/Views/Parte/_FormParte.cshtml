@@ -1,0 +1,216 @@
+﻿<div class="card">
+    <div class="card-header">
+        <span>Intervención</span>
+        <button class="btn btn-secondary col-sm-2 float-end" id="btnVerDocumentacion">Documentacion</button>
+    </div>
+    <div class="card-body">
+        <div class="mb-3 row">
+            <div class="col-sm-1">
+                <label class="form-check-label" for="inlineRadio3">Nº Parte:</label>
+                <input type="text" id="idNumparte" class="form-control" />
+            </div>
+            <div class="col-sm-2">
+                <label class="form-check-label" for="inlineRadio3">Fecha:</label>
+                <div id="fechaParte"></div>
+            </div>
+            <div class="col-sm-4">
+                <label class="col-sm-5 row">Tipo Intervención:</label>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="prioridad" id="prioridadRadio1" value="1" checked="checked">
+                    <label class="form-check-label" for="inlineRadio1">Programada</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="prioridad" id="prioridadRadio2" value="2">
+                    <label class="form-check-label" for="inlineRadio2">Urgente</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="prioridad" id="prioridadRadio3" value="3">
+                    <label class="form-check-label" for="inlineRadio3">Mantenimiento</label>
+                </div>
+            </div>
+            <div class="col-sm-5">
+                <label for="textObservaciones" class="form-label">Observaciones:</label>
+                <textarea class="form-control" id="textObservaciones" rows="3"></textarea>
+            </div>
+        </div>
+    </div>
+</div>
+<br />
+<div class="card">
+    <div class="card-body">
+        <div class="mb-3 row">
+            <div class="col-sm-6 row">
+                <div class="col-sm-10 row">
+                    <div class="col-sm-6">
+                        <label for="selectTipoTrabajo" class="form-label">Tipo Trabajo:</label>
+                        <select id="selectTipoTrabajo">
+                            <option value="OP" selected>Operaciones realizadas</option>
+                            <option value="PV">Operaciones proxima visita</option>
+                            <option value="TP">Trabajos a presupuestar</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="row">Estado Trabajo:</label>
+                        <div class="row">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="estadoTrabajo" id="estadoPendiente" value="1">
+                                <label class="form-check-label" for="estadoPendiente">Pendiente</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="estadoTrabajo" id="estadoRealizado" value="2" checked>
+                                <label class="form-check-label" for="estadoRealizado">Realizado</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-5">
+                        <label for="selectTecnico" class="form-label">Tecnico:</label>
+                        <select id="selectTecnico">
+                        </select>
+                    </div>
+                    <div class="col-sm-10">
+                        <label for="textTrabajos" class="form-label">Trabajos:</label>
+                        <textarea class="form-control col-sm-" id="textTrabajos" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="col-sm-2 align-content-center align-middle">
+                    <button class="btn btn-light" id="btnAddTrabajo">Añadir</button>
+                </div>
+            </div>
+            <div class="col-sm-6 row">
+                <div id="gridTrabajos"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<br />
+<div class="text-center">
+    <button class="btn btn-primary" id="btnSaveParte">Guardar</button>
+</div>
+
+<script>
+    var model = @Html.Raw(Json.Serialize(@Model));
+    model.trabajos = [];
+
+    var $selectTipo = $("#selectTipoTrabajo").selectize({
+        create: true,
+        sortField: "text",
+        onChange: function (data) {
+            if (data == "OP") {
+                $("#estadoRealizado").prop("checked", true);
+            } else {
+                $("#estadoPendiente").prop("checked", true);
+            }
+        }
+    });
+
+    var dateTimeBox = $("#fechaParte").dxDateBox({
+        "opened": false,
+        type: 'date',
+        value: new Date(),
+        displayFormat: 'dd/MM/yyyy',
+    });
+
+    var $selectTecnico = $("#selectTecnico").selectize({
+        create: true,
+        sortField: "text",
+    });
+
+    var selectCliente = $("#selectCliente").selectize({
+        sortField: "text",
+        options: model.clientes,
+        labelField: 'nombre',
+        valueField: 'idcliente',
+        searchField: ['nombre', 'apellidos', 'email', 'telmovil', 'telfijo'],
+        render: {
+            option: function (data, escape) {
+                return "<div>" + (data.nombre ? '<span class="name">' + escape(data.nombre) + ' ' + escape(data.apellidos) + "</span>" : "") + (data.email ? '<span class="email">|| ' + escape(data.email) + "</span>" : "") + "</div>";
+            }, item: function (data, escape) {
+                return "<div>" + (data.nombre ? '<span class="name">' + escape(data.nombre) + ' ' + escape(data.apellidos) + "</span>" : "") + (data.email ? '<span class="email">|| ' + escape(data.email) + "</span>" : "") + "</div>";
+            }
+        }
+    });
+
+    var gridTrabajos = $("#gridTrabajos").dxDataGrid({
+        dataSource: {
+            load: function () {
+                return model.trabajos;
+            }
+        },
+        allowColumnResizing: true,
+        columnAutoWidth: true,
+        searchPanel: { visible: false },
+        headerFilter: { visible: false },
+        filterRow: { visible: false },
+        filterPanel: { visible: false },
+        paging: {
+            pageSize: 5,
+        },
+        pager: {
+            visible: true,
+            allowedPageSizes: [5, 10, 'all'],
+            showPageSizeSelector: true,
+            showInfo: true,
+            showNavigationButtons: false,
+        },
+        export: {
+            enabled: true
+        },
+        onExporting: function (e) {
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = workbook.addWorksheet('Trabajos');
+
+            DevExpress.excelExporter.exportDataGrid({
+                worksheet: worksheet,
+                component: e.component
+            }).then(function () {
+                workbook.xlsx.writeBuffer().then(function (buffer) {
+                    saveAs(new Blob([buffer], { type: 'application/octet-stream' }), 'Trabajos.xlsx');
+                });
+            });
+            e.cancel = true;
+        },
+        columns: [
+            {
+                dataField: "tipoTrabajo", customizeText: function (cellInfo) {
+                    switch (cellInfo.value) {
+                        case "OP":
+                            return "Operaciones realizadas";
+                        case "TP":
+                            return "Trabajos a presupuestar";
+                        case "PV":
+                            return "Operaciones proxima visita";
+                    }
+                }
+            },
+            "estadoTrabajo",
+            "tecnico",
+            "descripcion"
+        ]
+    });
+
+    $("#btnSaveParte").click(function () {
+
+    });
+
+    $("#btnAddTrabajo").click(function () {
+
+        var trabajo = {
+            tipoTrabajo: $selectTipo[0].selectize.getValue(),
+            estadoTrabajo: $("input[name=estadoTrabajo]:checked").val(),
+            tecnico: $selectTecnico[0].selectize.getValue(),
+            descripcion: $("#textTrabajos").val()
+        }
+        console.log(trabajo);
+        model.trabajos.push(trabajo);
+        gridTrabajos.dxDataGrid("getDataSource").reload();
+
+        $selectTipo[0].selectize.clear();
+        $("input[name=estadoTrabajo]:checked").prop("checked", false);
+        $selectTecnico[0].selectize.clear();
+        $("#textTrabajos").val("");
+
+    });
+
+
+
+</script>

@@ -1,19 +1,12 @@
 ﻿using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Authorization;
 using TrackerWeb.Models;
 using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.Build.Framework;
-using Microsoft.AspNetCore.Identity;
 using DTO;
 using System.Text.Json;
 using Microsoft.CodeAnalysis;
-using static System.Net.WebRequestMethods;
 
 namespace TrackerWeb.Controllers
 {
@@ -46,7 +39,7 @@ namespace TrackerWeb.Controllers
             //if (HttpContext.Request.Cookies.ContainsKey("loginTracker"))
             if (User.Identity.IsAuthenticated)
             {
-                _model = new HomeViewModel(_configuration);
+                _model = new HomeViewModel(_configuration, user);
                 return View(_model);
             }
             else
