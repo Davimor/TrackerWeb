@@ -3,6 +3,7 @@ using TrackerWeb.Models;
 using System.Security.Claims;
 using DTO;
 using System.Text.Json;
+using Microsoft.AspNetCore.Authorization;
 
 namespace TrackerWeb.Controllers
 {
@@ -36,5 +37,14 @@ namespace TrackerWeb.Controllers
         {
             return View(_model);
         }
+
+        [HttpPost]
+        [Authorize]
+        public JsonResult SaveParte(string parte) {
+            var files = Request.Form.Files;
+            var nuevo = JsonSerializer.Deserialize<Parte>(parte);
+            return Json(true);
+        }
+
     }
 }

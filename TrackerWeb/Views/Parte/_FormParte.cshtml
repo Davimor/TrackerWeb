@@ -1,36 +1,41 @@
 ﻿<div class="card">
     <div class="card-header">
         <span>Intervención</span>
-        <button class="btn btn-secondary col-sm-2 float-end" id="btnVerDocumentacion">Documentacion</button>
+        <button class="btn btn-secondary col-sm-2 float-end" id="btnAddDocumentacion">Añadir Documentación</button>
     </div>
     <div class="card-body">
         <div class="mb-3 row">
-            <div class="col-sm-1">
-                <label class="form-check-label" for="inlineRadio3">Nº Parte:</label>
-                <input type="text" id="idNumparte" class="form-control" />
-            </div>
-            <div class="col-sm-2">
-                <label class="form-check-label" for="inlineRadio3">Fecha:</label>
-                <div id="fechaParte"></div>
-            </div>
-            <div class="col-sm-4">
-                <label class="col-sm-5 row">Tipo Intervención:</label>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="prioridad" id="prioridadRadio1" value="1" checked="checked">
-                    <label class="form-check-label" for="inlineRadio1">Programada</label>
+            <div class="col-sm-6 row">
+                <div class="col-sm-2">
+                    <label class="form-check-label" for="inlineRadio3">Nº Parte:</label>
+                    <input type="number" id="idNumparte" class="form-control" />
                 </div>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="prioridad" id="prioridadRadio2" value="2">
-                    <label class="form-check-label" for="inlineRadio2">Urgente</label>
+                <div class="col-sm-3">
+                    <label class="form-check-label" for="fechaParte">Fecha:</label>
+                    <div id="fechaParte"></div>
                 </div>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="prioridad" id="prioridadRadio3" value="3">
-                    <label class="form-check-label" for="inlineRadio3">Mantenimiento</label>
+                <div class="col-sm-6">
+                    <label class="col-sm-6 row">Tipo Intervención:</label>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="tipointer" id="prioridadRadio1" value="1" checked="checked">
+                        <label class="form-check-label" for="inlineRadio1">Programada</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="tipointer" id="prioridadRadio2" value="2">
+                        <label class="form-check-label" for="inlineRadio2">Urgente</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="tipointer" id="prioridadRadio3" value="3">
+                        <label class="form-check-label" for="inlineRadio3">Mantenimiento</label>
+                    </div>
+                </div>
+                <div class="col-sm-8">
+                    <label for="textObservaciones" class="form-label">Observaciones:</label>
+                    <textarea class="form-control" id="textObservaciones" rows="3"></textarea>
                 </div>
             </div>
-            <div class="col-sm-5">
-                <label for="textObservaciones" class="form-label">Observaciones:</label>
-                <textarea class="form-control" id="textObservaciones" rows="3"></textarea>
+            <div class="col-sm-6">
+                <div id="gridDocumentos"></div>
             </div>
         </div>
     </div>
@@ -87,9 +92,36 @@
     <button class="btn btn-primary" id="btnSaveParte">Guardar</button>
 </div>
 
+<div class="modal fade" id="DocumentosModal" tabindex="-9" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Documentación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body align-items-center">
+                <div class="alert alert-success" id="success-Upload" style="display:none">
+                    Documento/s Guardado/s!
+                </div>
+                <form id="uploadform" method="post" EncType="multipart/form-data" action="@Url.Action("UploadFiles","Document")" target="_blank">
+                    <div class="upload-container">
+                        <input type="file" id="file_upload" multiple="true" name="fileInput" />
+                    </div>
+                    <br>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     var model = @Html.Raw(Json.Serialize(@Model));
     model.trabajos = [];
+    model.documentos = [];
+    var data = new FormData();
 
     var $selectTipo = $("#selectTipoTrabajo").selectize({
         create: true,
@@ -103,7 +135,7 @@
         }
     });
 
-    var dateTimeBox = $("#fechaParte").dxDateBox({
+    var dateTimeBoxParte = $("#fechaParte").dxDateBox({
         "opened": false,
         type: 'date',
         value: new Date(),
@@ -111,9 +143,25 @@
     });
 
     var $selectTecnico = $("#selectTecnico").selectize({
-        create: true,
         sortField: "text",
+        options: model.tecnicos,
+        labelField: 'firstName',
+        valueField: 'idUser',
+        searchField: ['firstName', 'lastName'],
+        render: {
+            option: function (data, escape) {
+                return '<div class="option">' +
+                    '<span class="title">' + escape(data.firstName) + ' ' + escape(data.lastName) + '</span>' +
+                    '</div>';
+            }, item: function (data, escape) {
+                return '<div class="option">' +
+                    '<span class="title">' + escape(data.firstName) + ' ' + escape(data.lastName) + '</span>' +
+                    '</div>';
+            }
+        }
     });
+
+    $selectTecnico[0].selectize.setValue(model.user.idUser);
 
     var selectCliente = $("#selectCliente").selectize({
         sortField: "text",
@@ -188,12 +236,103 @@
         ]
     });
 
-    $("#btnSaveParte").click(function () {
+    var gridDocumentos = $("#gridDocumentos").dxDataGrid({
+        dataSource: {
+            load: function () {
+                return model.documentos;
+            }
+        },
+        allowColumnResizing: true,
+        columnAutoWidth: true,
+        searchPanel: { visible: false },
+        headerFilter: { visible: false },
+        filterRow: { visible: false },
+        filterPanel: { visible: false },
+        paging: {
+            pageSize: 5,
+        },
+        pager: {
+            visible: true,
+            allowedPageSizes: [5, 10, 'all'],
+            showPageSizeSelector: true,
+            showInfo: true,
+            showNavigationButtons: false,
+        },
+        export: {
+            enabled: true
+        },
+        onExporting: function (e) {
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = workbook.addWorksheet('Trabajos');
 
+            DevExpress.excelExporter.exportDataGrid({
+                worksheet: worksheet,
+                component: e.component
+            }).then(function () {
+                workbook.xlsx.writeBuffer().then(function (buffer) {
+                    saveAs(new Blob([buffer], { type: 'application/octet-stream' }), 'Trabajos.xlsx');
+                });
+            });
+            e.cancel = true;
+        },
+        columns: [
+            "nombre",
+            {
+                dataField: "Borrar", cellTemplate: function (element, info) {
+                    element.append("<button class='btn btn-link' type='button' onclick=deleteFile('" + escape(info.data.nombre) + "')>Borrar</button>");
+                }
+            }
+        ]
+    });
+
+    $("#file_upload").change(function() {
+        for (var i = 0; i < $('#file_upload')[0].files.length; i++) {
+            data.append('file-' + escape($('#file_upload')[0].files[i].name), $('#file_upload')[0].files[i]);
+            model.documentos.push({
+                nombre: $('#file_upload')[0].files[i].name,
+                EscapedName: escape($('#file_upload')[0].files[i].name)
+            });
+        }
+        gridDocumentos.dxDataGrid("getDataSource").reload();
+    })
+
+    $("#btnSaveParte").click(function () {
+        var parte = {
+            trabajos: model.trabajos,
+            numParte: $("#idNumparte").val(),
+            fecha: new Date(dateTimeBoxParte.dxDateBox("instance").option('value')).toJSON(),
+            tipoIntervencion: $("input[name=tipointer]:checked").val(),
+            observaciones: $("#textObservaciones").val()
+        }
+
+        
+
+        data.append('parte', JSON.stringify(parte));
+
+        $.ajax({
+            url: '@Url.Action("SaveParte","Parte")',
+            type: 'POST',
+            data: data,
+            dataType: 'json',
+            contentType: false,
+            processData: false,
+            success: function (response) {
+                $('#file_upload').val("");
+                $('#success-Upload').show();
+                $("#success-Upload").fadeTo(5000, 500).slideUp(500, function () {
+                    $("#success-Upload").slideUp(500);
+                });
+                //Recargar grid
+                model.documentosAviso = response;
+                gridDocumentos.dxDataGrid("getDataSource").reload();
+            }
+        });
+              
+        console.log(parte);
+        console.log(data);
     });
 
     $("#btnAddTrabajo").click(function () {
-
         var trabajo = {
             tipoTrabajo: $selectTipo[0].selectize.getValue(),
             estadoTrabajo: $("input[name=estadoTrabajo]:checked").val(),
@@ -211,6 +350,14 @@
 
     });
 
+    $("#btnAddDocumentacion").click(function () {
+        $("#DocumentosModal").modal("show");
+    });
 
+    function deleteFile(name){
+        model.documentos = model.documentos.filter(x=>x.EscapedName != name);
+        data.delete('file-' + name)
+        gridDocumentos.dxDataGrid("getDataSource").reload();
+    }
 
 </script>

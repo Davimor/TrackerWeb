@@ -9,6 +9,7 @@ namespace TrackerWeb.Models
 
         public Empleado user { get; set; }
         public List<DTO.Cliente> Clientes { get; set; }
+        public List<DTO.Empleado> Tecnicos { get; set; }
 
         public ParteViewModel(IConfiguration _configuration, Empleado _user)
         {
@@ -40,6 +41,7 @@ namespace TrackerWeb.Models
 	  LEFT JOIN TIPOCLIENTE tc on tc.IDTIPOCLI = c.TIPO
 	  LEFT JOIN CARGOS car on car.IDCARGO = c.CARGO");
 
+                Tecnicos = db.GetSimpleData<DTO.Empleado>(@"SELECT  * FROM Empleados");
             }
 
         }

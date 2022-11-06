@@ -35,8 +35,8 @@
             tareas = tareas + "\n\nTarea " + (i + 1) + ":\nTipo Trabajo (Realizado,Pendiente,Presupuesto):\nTrabajo:"
         }
 
-        var subject = "Parte: " + cont;
-        var body = "Usuario: " + '@Html.Raw(@Model.user.IdUser)' + "\nFecha: " + fecha + " \nPrioridad (P/U/M): \nObservaciones: \n\n\nTareas: " + tareas;
+        var subject = "Nuevo parte de trabajo";
+        var body = "Usuario: " + '@Html.Raw(@Model.user.IdUser)' + "\nFecha: " + fecha + " \nNº Parte: "+ cont +" \nPrioridad (P/U/M): \nObservaciones: \n\n\nTareas: " + tareas;
         var action = "mailto:example@example.com?&subject=" + encodeURI(subject) + "&body=" + encodeURI(body);
         $("#btnSendMail").attr('href', action);
     });
