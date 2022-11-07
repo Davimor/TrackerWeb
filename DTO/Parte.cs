@@ -9,10 +9,11 @@ namespace DTO
     public class Parte
     {
         public string numParte { get; set; }
-        public long idCliente { get; set; }
+        public string idCliente { get; set; }
         public DateTime fecha { get; set; }
         public string observaciones { get; set; } = "";
         public string tipoIntervencion { get; set; }
+        public string idUser { get; set; } = "";
         public List<Trabajo> trabajos { get; set; } = new List<Trabajo>();
     }
 }

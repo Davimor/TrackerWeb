@@ -163,7 +163,7 @@
 
     $selectTecnico[0].selectize.setValue(model.user.idUser);
 
-    var selectCliente = $("#selectCliente").selectize({
+    var $selectCliente = $("#selectCliente").selectize({
         sortField: "text",
         options: model.clientes,
         labelField: 'nombre',
@@ -285,7 +285,7 @@
         ]
     });
 
-    $("#file_upload").change(function() {
+    $("#file_upload").change(function () {
         for (var i = 0; i < $('#file_upload')[0].files.length; i++) {
             data.append('file-' + escape($('#file_upload')[0].files[i].name), $('#file_upload')[0].files[i]);
             model.documentos.push({
@@ -298,15 +298,14 @@
 
     $("#btnSaveParte").click(function () {
         var parte = {
+            idCliente: $selectCliente[0].selectize.getValue(),
             trabajos: model.trabajos,
             numParte: $("#idNumparte").val(),
             fecha: new Date(dateTimeBoxParte.dxDateBox("instance").option('value')).toJSON(),
             tipoIntervencion: $("input[name=tipointer]:checked").val(),
             observaciones: $("#textObservaciones").val()
         }
-
-        
-
+        console.log(parte);
         data.append('parte', JSON.stringify(parte));
 
         $.ajax({
@@ -327,9 +326,6 @@
                 gridDocumentos.dxDataGrid("getDataSource").reload();
             }
         });
-              
-        console.log(parte);
-        console.log(data);
     });
 
     $("#btnAddTrabajo").click(function () {
@@ -354,8 +350,8 @@
         $("#DocumentosModal").modal("show");
     });
 
-    function deleteFile(name){
-        model.documentos = model.documentos.filter(x=>x.EscapedName != name);
+    function deleteFile(name) {
+        model.documentos = model.documentos.filter(x => x.EscapedName != name);
         data.delete('file-' + name)
         gridDocumentos.dxDataGrid("getDataSource").reload();
     }

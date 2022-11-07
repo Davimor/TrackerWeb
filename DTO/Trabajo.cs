@@ -9,6 +9,7 @@ namespace DTO
     public class Trabajo
     {
         public int id { get; set; }
+        public int idIntervencion { get; set; }
         public string descripcion { get; set; } ="";
         public string estadoTrabajo { get; set; }
         public string tecnico { get; set; } = "";
