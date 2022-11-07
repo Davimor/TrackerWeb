@@ -6,6 +6,7 @@
 <h4>Partes de visita</h4>
 
 <a class="btn btn-primary" id="btnSendMail">Crear parte por email</a>
+<btn class="btn btn-primary float-end" id="btnVerPartes">Ver Partes</btn>
 <br />
 <br />
 <div class="mb-3 row">
@@ -15,6 +16,23 @@
 
 @Html.Partial("_FormParte",Model)
 
+
+<div class="modal fade " id="modalPartes" tabindex="-9" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Partes</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body align-items-center">
+                <div id="gridPartes"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
     //var model = @Html.Raw(Json.Serialize(@Model.user.IdUser));
@@ -36,8 +54,156 @@
         }
 
         var subject = "Nuevo parte de trabajo";
-        var body = "Usuario: " + '@Html.Raw(@Model.user.IdUser)' + "\nFecha: " + fecha + " \nNº Parte: "+ cont +" \nPrioridad (P/U/M): \nObservaciones: \n\n\nTareas: " + tareas;
+        var body = "Usuario: " + '@Html.Raw(@Model.user.IdUser)' + "\nFecha: " + fecha + " \nNº Parte: " + cont + " \nPrioridad (P/U/M): \nObservaciones: \n\n\nTareas: " + tareas;
         var action = "mailto:example@example.com?&subject=" + encodeURI(subject) + "&body=" + encodeURI(body);
         $("#btnSendMail").attr('href', action);
     });
+
+    $("#btnVerPartes").click(function (x) {
+
+        $.ajax({
+            url: '@Url.Action("GetPartes","Parte")',
+            type: 'POST',
+            dataType: 'json',
+            contentType: false,
+            processData: false,
+            success: function (response) {
+                //Recargar grid
+                model.partes = response;
+                gridPartes.dxDataGrid("getDataSource").reload();
+                $("#modalPartes").modal("show");
+            }
+        });
+
+    });
+
+    var gridPartes = $("#gridPartes").dxDataGrid({
+        dataSource: {
+            load: function () {
+                return model.partes;
+            }
+        },
+        loadPanel: {
+            enabled: true,
+            text: "Cargando datos..."
+        },
+        allowColumnReordering: true,
+        allowColumnResizing: true,
+        columnAutoWidth: true,
+        searchPanel: { visible: false },
+        headerFilter: { visible: false },
+        filterRow: { visible: false },
+        filterPanel: { visible: false },
+        paging: {
+            pageSize: 5,
+        },
+        pager: {
+            visible: true,
+            allowedPageSizes: [5, 10, 'all'],
+            showPageSizeSelector: true,
+            showInfo: true,
+            showNavigationButtons: false,
+        },
+        export: {
+            enabled: true
+        },
+        onExporting: function (e) {
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = workbook.addWorksheet('Partes');
+
+            DevExpress.excelExporter.exportDataGrid({
+                worksheet: worksheet,
+                component: e.component
+            }).then(function () {
+                workbook.xlsx.writeBuffer().then(function (buffer) {
+                    saveAs(new Blob([buffer], { type: 'application/octet-stream' }), 'Partes.xlsx');
+                });
+            });
+            e.cancel = true;
+        },
+        columns: [
+            "numParte",
+            {
+                dataField: "idCliente", customizeText: function (cellInfo) {
+                    var cli = model.clientes.filter(x => x.idcliente == cellInfo.value)[0];
+                    return cli.nombre + " " + cli.apellidos;
+                }
+            },
+            "fecha",
+            { dataField: "observaciones", maxWidth: 150 },
+            {
+                dataField: "tipoIntervencion", customizeText: function (cellInfo) {
+                    switch (cellInfo.value) {
+                        case "1":
+                            return "Programada";
+                        case "2":
+                            return "Urgente";
+                        case "3":
+                            return "Mantenimiento";
+                    }
+                }
+            },
+            {
+                dataField: "Editar", cellTemplate: function (element, info) {
+                    element.append("<button class='btn btn-light' type='button' onclick=EditParte(" + info.data.idintervencion + ")>Ver</button>");
+                }
+            }
+        ]
+    });
+
+    $("#btnSaveParte").click(function () {
+        var parte = {
+            idCliente: $selectCliente[0].selectize.getValue(),
+            trabajos: model.trabajos,
+            numParte: $("#idNumparte").val(),
+            fecha: new Date(dateTimeBoxParte.dxDateBox("instance").option('value')).toJSON(),
+            tipoIntervencion: $("input[name=tipointer]:checked").val(),
+            observaciones: $("#textObservaciones").val()
+        }
+
+        data.append('parte', JSON.stringify(parte));
+
+        if (parte.numParte == "") {
+            alert("Se ha de establecer el numero de parte");
+            return;
+        }
+
+        $.ajax({
+            url: '@Url.Action("SaveParte","Parte")',
+            type: 'POST',
+            data: data,
+            dataType: 'json',
+            contentType: false,
+            processData: false,
+            success: function (response) {
+                $('#file_upload').val("");
+                $('#success-Upload').show();
+                $("#success-Upload").fadeTo(5000, 500).slideUp(500, function () {
+                    $("#success-Upload").slideUp(500);
+                });
+                //Recargar grid
+                gridDocumentos.dxDataGrid("getDataSource").reload();
+            }
+        });
+    });
+
+    function EditParte(id) {
+        var parte = model.partes.filter(x => x.idintervencion == id)[0];
+
+        $("#idIntervencion").val(parte.idintervencion);
+        model.documentos = parte.docs;
+        gridDocumentos.dxDataGrid("getDataSource").reload();
+        model.trabajos = parte.trabajos;
+        gridTrabajos.dxDataGrid("getDataSource").reload();
+
+
+        $selectCliente[0].selectize.setValue(parte.idCliente);
+        $("#idNumparte").val(parte.numParte);
+        dateTimeBoxParte.dxDateBox("instance").option("value", parte.fecha)
+        $("input[name=tipointer][value=" + parte.tipoIntervencion + "]").prop('checked', true)
+        $("#textObservaciones").val(parte.observaciones);
+
+        $("#modalPartes").modal("hide");
+    }
+
 </script>

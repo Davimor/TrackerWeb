@@ -74,7 +74,104 @@ namespace TrackerWeb.Controllers
            ,@tipoIntervencion
            ,@IdUser
            ,@observaciones)", nuevo);
-                foreach (var t in nuevo.trabajos) {
+                foreach (var t in nuevo.trabajos)
+                {
+                    t.idIntervencion = Decimal.ToInt32((decimal)idParte);
+                    //t.tecnico = _model.Tecnicos.Where(x => x.IdUser == t.tecnico).First().EmployeeID;
+                }
+                var trabajos = db.Execute(@"INSERT INTO [dbo].[HistoricoIntervenciones]
+           ([IdIntervencion]
+           ,[TipoTrabajo]
+           ,[EstadoTrabajo]
+           ,[Descripcion]
+           ,[IdEmp])
+     VALUES
+           (@idIntervencion
+           ,@tipoTrabajo
+           ,@estadoTrabajo
+           ,@descripcion
+           ,@tecnico)", nuevo.trabajos);
+
+                foreach (var doc in docs)
+                {
+                    //Inserto DOC
+                    var iddoc = db.ExecuteScalar(@"INSERT INTO [dbo].[DOCUMENTOS]
+           ([Name]
+           ,[ContentType]
+           ,[Data]
+           ,[UploadUser]
+           ,[UploadDate])
+     VALUES
+           (@Name
+           ,@ContentType
+           ,@Data
+           ,@UploadUser
+           ,@UploadDate)", doc);
+                    //Inserto relacion doc y caso
+                    db.Execute("INSERT INTO INTERVENCIONDOCUMENTO ([IdIntervencion], [IdDoc]) VALUES ( @IdIntervencion,@IdDoc)", new { IdIntervencion = idParte, IdDoc = iddoc });
+                }
+
+
+                return Json(true);
+            }
+        }
+
+        [HttpPost]
+        [Authorize]
+        public JsonResult GetPartes()
+        {
+            List<Parte> ret = new List<Parte>();
+            using (DapperAccess db = new DapperAccess(_configuration))
+            {
+                ret = db.GetSimpleData<Parte>("SELECT IDINTERVENCION,NUMINTERVENCION 'numParte',IDCLIENTE,FECHA,TIPOINTERVENCION,IdUser,Observaciones FROM INTERVENCIONES");
+                foreach (Parte p in ret)
+                {
+                    p.trabajos = db.GetSimpleData<Trabajo>("SELECT [IdHistInterven] 'id' ,[IdIntervencion] ,[TipoTrabajo] ,[EstadoTrabajo] ,[Descripcion] ,[IdEmp] 'tecnico' FROM [Tracker].[dbo].[HistoricoIntervenciones] WHERE [IdIntervencion] = @id", new { id = p.IDINTERVENCION });
+                    p.docs = db.GetSimpleData<Documento>(@"SELECT d.Id, d.Name, d.ContentType, d.UploadUser,d.UploadDate FROM Documentos d
+  JOIN INTERVENCIONDOCUMENTO cd ON cd.idDoc = d.id
+  WHERE cd.idIntervencion = @id", new { id = p.IDINTERVENCION });
+                }
+            }
+
+            return Json(ret);
+        }
+
+        [HttpPost]
+        [Authorize]
+        public JsonResult EditParte(string parte)
+        {
+            var files = Request.Form.Files;
+            List<Documento> docs = new List<Documento>();
+            if (files != null)
+            {
+                foreach (var f in files)
+                {
+                    if (f.Length > 0)
+                    {
+                        docs.Add(new Documento(f, _user));
+                    }
+                }
+            }
+            var nuevo = JsonSerializer.Deserialize<Parte>(parte);
+            nuevo.idUser = _user.IdUser;
+            using (DapperAccess db = new DapperAccess(_configuration))
+            {
+                var idParte = db.ExecuteScalar(@"INSERT INTO [dbo].[INTERVENCIONES]
+           ([NUMINTERVENCION]
+           ,[IDCLIENTE]
+           ,[FECHA]
+           ,[TIPOINTERVENCION]
+           ,[IdUser]
+           ,[Observaciones])
+     VALUES
+           (@numParte
+           ,@idCliente
+           ,@fecha
+           ,@tipoIntervencion
+           ,@IdUser
+           ,@observaciones)", nuevo);
+                foreach (var t in nuevo.trabajos)
+                {
                     t.idIntervencion = Decimal.ToInt32((decimal)idParte);
                     t.tecnico = _model.Tecnicos.Where(x => x.IdUser == t.tecnico).First().EmployeeID;
                 }
@@ -114,6 +211,5 @@ namespace TrackerWeb.Controllers
                 return Json(true);
             }
         }
-
     }
 }

@@ -1,4 +1,5 @@
-﻿<div class="card">
+﻿<input type="hidden" id="idIntervencion" value="" />
+<div class="card">
     <div class="card-header">
         <span>Intervención</span>
         <button class="btn btn-secondary col-sm-2 float-end" id="btnAddDocumentacion">Añadir Documentación</button>
@@ -146,7 +147,7 @@
         sortField: "text",
         options: model.tecnicos,
         labelField: 'firstName',
-        valueField: 'idUser',
+        valueField: 'employeeID',
         searchField: ['firstName', 'lastName'],
         render: {
             option: function (data, escape) {
@@ -161,7 +162,7 @@
         }
     });
 
-    $selectTecnico[0].selectize.setValue(model.user.idUser);
+    $selectTecnico[0].selectize.setValue(model.user.employeeID);
 
     var $selectCliente = $("#selectCliente").selectize({
         sortField: "text",
@@ -184,6 +185,11 @@
                 return model.trabajos;
             }
         },
+        loadPanel: {
+            enabled: true,
+            text: "Cargando datos..."
+        },
+        allowColumnReordering: true,
         allowColumnResizing: true,
         columnAutoWidth: true,
         searchPanel: { visible: false },
@@ -230,8 +236,17 @@
                     }
                 }
             },
-            "estadoTrabajo",
-            "tecnico",
+            {
+                dataField: "estadoTrabajo", customizeText: function (cellInfo) {
+                    return cellInfo.value == "1" ? "Pendiente" : "Realizado";
+                }
+            },
+            {
+                dataField: "tecnico", customizeText: function (cellInfo) {
+                    var emp = model.tecnicos.filter(x => x.employeeID == cellInfo.value)[0];;
+                    return emp.idUser;
+                }
+            },
             "descripcion"
         ]
     });
@@ -242,6 +257,11 @@
                 return model.documentos;
             }
         },
+        loadPanel: {
+            enabled: true,
+            text: "Cargando datos..."
+        },
+        allowColumnReordering: true,
         allowColumnResizing: true,
         columnAutoWidth: true,
         searchPanel: { visible: false },
@@ -276,10 +296,16 @@
             e.cancel = true;
         },
         columns: [
-            "nombre",
+            { dataField: "name", caption: "Nombre" },
             {
                 dataField: "Borrar", cellTemplate: function (element, info) {
-                    element.append("<button class='btn btn-link' type='button' onclick=deleteFile('" + escape(info.data.nombre) + "')>Borrar</button>");
+                    console.log(info.data.id != null);
+                    element.append("<button class='btn btn-link' type='button' " + (info.data.id != null ? "disabled" : "") + " onclick=deleteFile('" + escape(info.data.nombre) + "')>Borrar</button>");
+                }
+            },
+            {
+                dataField: "Download", cellTemplate: function (element, info) {
+                    element.append("<button class='btn btn-link' type='button' " + (info.data.id == null ? "disabled" : "") + " onclick=DownloadFile(" + info.data.id + ")>Descargar</button>");
                 }
             }
         ]
@@ -289,44 +315,12 @@
         for (var i = 0; i < $('#file_upload')[0].files.length; i++) {
             data.append('file-' + escape($('#file_upload')[0].files[i].name), $('#file_upload')[0].files[i]);
             model.documentos.push({
-                nombre: $('#file_upload')[0].files[i].name,
+                name: $('#file_upload')[0].files[i].name,
                 EscapedName: escape($('#file_upload')[0].files[i].name)
             });
         }
         gridDocumentos.dxDataGrid("getDataSource").reload();
     })
-
-    $("#btnSaveParte").click(function () {
-        var parte = {
-            idCliente: $selectCliente[0].selectize.getValue(),
-            trabajos: model.trabajos,
-            numParte: $("#idNumparte").val(),
-            fecha: new Date(dateTimeBoxParte.dxDateBox("instance").option('value')).toJSON(),
-            tipoIntervencion: $("input[name=tipointer]:checked").val(),
-            observaciones: $("#textObservaciones").val()
-        }
-        console.log(parte);
-        data.append('parte', JSON.stringify(parte));
-
-        $.ajax({
-            url: '@Url.Action("SaveParte","Parte")',
-            type: 'POST',
-            data: data,
-            dataType: 'json',
-            contentType: false,
-            processData: false,
-            success: function (response) {
-                $('#file_upload').val("");
-                $('#success-Upload').show();
-                $("#success-Upload").fadeTo(5000, 500).slideUp(500, function () {
-                    $("#success-Upload").slideUp(500);
-                });
-                //Recargar grid
-                model.documentosAviso = response;
-                gridDocumentos.dxDataGrid("getDataSource").reload();
-            }
-        });
-    });
 
     $("#btnAddTrabajo").click(function () {
         var trabajo = {
